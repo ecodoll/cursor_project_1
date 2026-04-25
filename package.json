@@ -1,0 +1,8 @@
+{
+  "name": "couple-household-book",
+  "private": true,
+  "description": "부부 공유 가계부 (정적 HTML, Vercel 배포용)",
+  "scripts": {
+    "build": "node -e \"require('fs').copyFileSync('couple_household_book.html','index.html')\""
+  }
+}

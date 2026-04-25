@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>부부 공유 가계부</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #e8ecf4;
+      --bg-mesh: radial-gradient(1200px 600px at 10% -10%, #dbeafe 0%, transparent 50%),
+        radial-gradient(900px 500px at 100% 0%, #e0e7ff 0%, transparent 45%),
+        linear-gradient(180deg, #eef1f8 0%, #e4e9f2 100%);
+      --card: rgba(255, 255, 255, 0.82);
+      --card-solid: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #dc2626;
+      --border: rgba(15, 23, 42, 0.08);
+      --success: #059669;
+      --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 12px 40px rgba(15, 23, 42, 0.08);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background: var(--bg-mesh);
+      background-color: var(--bg);
+      background-attachment: fixed;
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 20px 18px 32px;
+    }
+    h1, h2, h3 { margin: 0 0 10px; letter-spacing: -0.02em; }
+    h1 { font-size: 1.5rem; font-weight: 700; }
+    h2 { font-size: 1.15rem; font-weight: 650; }
+    h3 { font-size: 1.05rem; font-weight: 650; }
+    .topbar {
+      background: var(--card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .topbar-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 14px 20px;
+      flex: 1;
+      min-width: 200px;
+    }
+    .topbar-head .title-block .muted { margin-top: 2px; font-size: 13px; }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .conn-box {
+      width: 100%;
+      border: 1px dashed rgba(37, 99, 235, 0.25);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      align-items: end;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.04) 0%, rgba(255, 255, 255, 0.5) 100%);
+    }
+    .conn-status {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.45;
+    }
+    .tab-btn {
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.55);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 9px 16px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.95);
+      border-color: var(--border);
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+    .right-tools {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+    .card {
+      background: var(--card-solid);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+    }
+    .col-12 { grid-column: span 12; }
+    .col-8 { grid-column: span 8; }
+    .col-6 { grid-column: span 6; }
+    .col-4 { grid-column: span 4; }
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+    }
+    .stat .label { color: var(--muted); font-size: 13px; }
+    .stat .value { margin-top: 6px; font-size: 22px; font-weight: 700; }
+    .value.income { color: var(--success); }
+    .value.expense { color: var(--danger); }
+    form .row {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .field {
+      grid-column: span 12;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .field.col-6 { grid-column: span 6; }
+    .field.col-4 { grid-column: span 4; }
+    .field.col-3 { grid-column: span 3; }
+    label { font-size: 13px; color: var(--muted); }
+    input, select, button {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: rgba(37, 99, 235, 0.45);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+    button {
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:not(.tab-btn):not(.btn-primary):not(.btn-danger) {
+      background: #f8fafc;
+    }
+    button:not(.tab-btn):not(.btn-primary):not(.btn-danger):hover {
+      background: #f1f5f9;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.05);
+    }
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+      border-color: transparent;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 12px 8px;
+      text-align: left;
+      font-size: 14px;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }
+    tbody tr:hover td { background: rgba(37, 99, 235, 0.03); }
+    .muted { color: var(--muted); }
+    .hidden { display: none; }
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .pill.income { background: #d1fae5; color: #047857; }
+    .pill.expense { background: #fee2e2; color: #b91c1c; }
+    .settings-hint {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 16px;
+      line-height: 1.55;
+    }
+    /* 거래 폼: 카테고리 셀렉트 터치·드롭다운이 옆 카드에 가리지 않도록 */
+    #tab-transactions .tx-form-card {
+      position: relative;
+      z-index: 3;
+      overflow: visible;
+    }
+    #tab-transactions .tx-form-card .grid,
+    #tab-transactions .tx-form-card form {
+      overflow: visible;
+    }
+    select.category-select {
+      min-height: 46px;
+      padding: 10px 36px 10px 12px;
+      font-size: 16px;
+      line-height: 1.35;
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      cursor: pointer;
+    }
+    .filter-month-row {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 8px;
+    }
+    .filter-month-row .field.col-3 {
+      grid-column: span 3;
+    }
+    .filter-month-row .filter-all-label {
+      grid-column: span 3;
+      align-self: center;
+      padding-bottom: 4px;
+    }
+    .filter-all-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      padding: 8px 0;
+    }
+    .filter-all-label input {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    .tx-form-actions {
+      grid-template-columns: repeat(2, minmax(110px, 1fr));
+      gap: 10px;
+    }
+    .tx-form-actions button {
+      width: 100%;
+      min-width: 110px;
+      white-space: nowrap;
+      text-align: center;
+      padding: 11px 14px;
+    }
+    .actions { display: flex; gap: 4px; flex-wrap: wrap; }
+    canvas { width: 100%; max-height: 320px; }
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+      background: var(--bg-mesh);
+      background-color: var(--bg);
+      overflow-y: auto;
+    }
+    .auth-overlay.hidden { display: none; }
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card-solid);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px 22px 20px;
+      box-shadow: var(--shadow);
+    }
+    .auth-card h2 { margin-bottom: 6px; }
+    .auth-card .lead {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+    .auth-mode-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .auth-mode-tabs button {
+      flex: 1;
+      padding: 10px 12px;
+      font-weight: 650;
+      border-radius: var(--radius-sm);
+    }
+    .auth-mode-tabs button.active {
+      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+      color: #fff;
+      border-color: transparent;
+    }
+    .auth-panel { display: none; }
+    .auth-panel.active { display: block; }
+    .auth-msg {
+      font-size: 13px;
+      color: var(--danger);
+      margin-bottom: 12px;
+      min-height: 1.2em;
+    }
+    .auth-msg.ok { color: var(--success); }
+    .auth-actions { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .auth-actions .btn-primary { width: 100%; padding: 12px 14px; }
+    .auth-divider {
+      margin: 16px 0 12px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+    #mainApp.hidden { display: none; }
+    @media (max-width: 900px) {
+      .col-8, .col-6, .col-4 { grid-column: span 12; }
+      .field.col-6, .field.col-4, .field.col-3 { grid-column: span 12; }
+      .filter-month-row .field.col-3,
+      .filter-month-row .filter-all-label { grid-column: span 12; }
+    }
+  </style>
+</head>
+<body>
+  <div id="authOverlay" class="auth-overlay" aria-live="polite">
+    <div class="auth-card">
+      <h2>부부 공유 가계부</h2>
+      <p class="lead">계정으로 로그인하면 Supabase URL·키·가족 코드를 매번 입력하지 않아도 됩니다. 배포 시 URL·키를 코드에 넣어 두면 가입·로그인 화면에만 가족 코드가 보입니다.</p>
+      <div class="auth-mode-tabs" role="tablist">
+        <button type="button" class="active" id="authTabLogin" data-auth-mode="login">로그인</button>
+        <button type="button" id="authTabRegister" data-auth-mode="register">회원가입</button>
+      </div>
+      <div id="authMsg" class="auth-msg" role="status"></div>
+      <div id="authPanelLogin" class="auth-panel active">
+        <div class="field">
+          <label for="gateEmailIn">이메일</label>
+          <input id="gateEmailIn" type="email" autocomplete="username" required>
+        </div>
+        <div class="field" style="margin-top:10px;">
+          <label for="gatePasswordIn">비밀번호</label>
+          <input id="gatePasswordIn" type="password" autocomplete="current-password" required>
+        </div>
+        <div id="gateConnLoginWrap" class="hidden" style="margin-top:14px;">
+          <p class="settings-hint" style="margin-bottom:10px;">이 기기에 저장된 연결 정보가 없습니다. 한 번만 Supabase URL과 Anon Key를 입력해 주세요.</p>
+          <div class="field">
+            <label for="gateSbUrlLogin">Supabase URL</label>
+            <input id="gateSbUrlLogin" type="url" placeholder="https://xxxx.supabase.co" autocomplete="off">
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <label for="gateSbKeyLogin">Supabase Anon Key</label>
+            <input id="gateSbKeyLogin" type="password" placeholder="eyJ..." autocomplete="off">
+          </div>
+        </div>
+        <div class="auth-actions">
+          <button type="button" class="btn-primary" id="btnAuthLogin">로그인</button>
+        </div>
+      </div>
+      <div id="authPanelRegister" class="auth-panel">
+        <div id="gateConnRegisterWrap">
+          <div class="field">
+            <label for="gateSbUrlReg">Supabase URL</label>
+            <input id="gateSbUrlReg" type="url" placeholder="https://xxxx.supabase.co" autocomplete="off">
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <label for="gateSbKeyReg">Supabase Anon Key</label>
+            <input id="gateSbKeyReg" type="password" placeholder="eyJ..." autocomplete="off">
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px;">
+          <label for="gateHouseholdReg">가족 코드(가계부 이름)</label>
+          <input id="gateHouseholdReg" placeholder="예: our-home-2025" autocomplete="off">
+        </div>
+        <div class="field" style="margin-top:10px;">
+          <label for="gateEmailReg">이메일</label>
+          <input id="gateEmailReg" type="email" autocomplete="off" required>
+        </div>
+        <div class="field" style="margin-top:10px;">
+          <label for="gatePasswordReg">비밀번호 (6자 이상)</label>
+          <input id="gatePasswordReg" type="password" autocomplete="new-password" required>
+        </div>
+        <div class="auth-actions">
+          <button type="button" class="btn-primary" id="btnAuthRegister">가입하고 연결</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mainApp" class="hidden">
+  <div class="container">
+    <div class="topbar">
+      <div class="topbar-head">
+        <div class="title-block">
+          <h1>부부 공유 가계부</h1>
+          <div class="muted">모바일·PC에서 함께 쓰는 반응형 가계부</div>
+        </div>
+      </div>
+      <div class="right-tools">
+        <label for="activeUser">작성자</label>
+        <select id="activeUser"></select>
+      </div>
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab-btn active" data-tab="dashboard" role="tab">대시보드</button>
+        <button type="button" class="tab-btn" data-tab="transactions" role="tab">거래내역</button>
+        <button type="button" class="tab-btn" data-tab="categories" role="tab">카테고리</button>
+        <button type="button" class="tab-btn" data-tab="reports" role="tab">월간 리포트</button>
+        <button type="button" class="tab-btn" data-tab="settings" role="tab">접속 설정</button>
+      </div>
+    </div>
+
+    <section id="tab-dashboard" class="tab-panel">
+      <div class="grid">
+        <div class="col-12 card">
+          <h2>이번 달 요약</h2>
+          <div class="row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <div class="stat">
+              <div class="label">총 수입</div>
+              <div id="sumIncome" class="value income">0원</div>
+            </div>
+            <div class="stat">
+              <div class="label">총 지출</div>
+              <div id="sumExpense" class="value expense">0원</div>
+            </div>
+            <div class="stat">
+              <div class="label">잔액</div>
+              <div id="sumBalance" class="value">0원</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 card">
+          <h3>최근 거래 5건</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>날짜</th><th>유형</th><th>금액</th><th>카테고리</th><th>메모</th><th>작성자</th>
+              </tr>
+            </thead>
+            <tbody id="recentRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-transactions" class="tab-panel hidden">
+      <div class="grid">
+        <div class="col-4 card tx-form-card">
+          <h2>거래 등록/수정</h2>
+          <form id="txForm">
+            <input type="hidden" id="txId">
+            <div class="row">
+              <div class="field col-6">
+                <label for="txDate">날짜</label>
+                <input id="txDate" type="date" required>
+              </div>
+              <div class="field col-6">
+                <label for="txType">유형</label>
+                <select id="txType" required>
+                  <option value="expense">지출</option>
+                  <option value="income">수입</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="field col-6">
+                <label for="txAmount">금액</label>
+                <input id="txAmount" type="number" min="0" required>
+              </div>
+              <div class="field col-6">
+                <label for="txOwner">작성자</label>
+                <select id="txOwner"></select>
+              </div>
+            </div>
+            <div class="row category-select-row">
+              <div class="field col-4">
+                <label for="catL1">대분류</label>
+                <select id="catL1" class="category-select" required></select>
+              </div>
+              <div class="field col-4">
+                <label for="catL2">중분류</label>
+                <select id="catL2" class="category-select" required></select>
+              </div>
+              <div class="field col-4">
+                <label for="catL3">소분류</label>
+                <select id="catL3" class="category-select" required></select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="txMemo">메모</label>
+                <input id="txMemo" type="text" maxlength="100">
+              </div>
+            </div>
+            <div class="row tx-form-actions">
+              <button class="btn-primary" type="submit">저장</button>
+              <button id="resetTxBtn" type="button">초기화</button>
+            </div>
+          </form>
+        </div>
+        <div class="col-8 card">
+          <h2>거래내역</h2>
+          <div class="filter-month-row">
+            <div class="field col-3">
+              <label for="filterMonth">월 선택</label>
+              <input id="filterMonth" type="month">
+            </div>
+            <label class="filter-all-label">
+              <input type="checkbox" id="filterAllMonths">
+              전체 기간 보기
+            </label>
+            <div class="field col-3">
+              <label for="filterType">유형 필터</label>
+              <select id="filterType">
+                <option value="">전체</option>
+                <option value="income">수입</option>
+                <option value="expense">지출</option>
+              </select>
+            </div>
+            <div class="field col-3">
+              <label for="filterOwner">작성자 필터</label>
+              <select id="filterOwner">
+                <option value="">전체</option>
+              </select>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>날짜</th><th>유형</th><th>금액</th><th>카테고리</th><th>메모</th><th>작성자</th><th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="txRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-categories" class="tab-panel hidden">
+      <div class="grid">
+        <div class="col-6 card">
+          <h2>카테고리 추가</h2>
+          <form id="catForm">
+            <div class="row">
+              <div class="field col-4">
+                <label for="newL1">대분류</label>
+                <input id="newL1" placeholder="예: 생활비" required>
+              </div>
+              <div class="field col-4">
+                <label for="newL2">중분류</label>
+                <input id="newL2" placeholder="예: 식비" required>
+              </div>
+              <div class="field col-4">
+                <label for="newL3">소분류</label>
+                <input id="newL3" placeholder="예: 외식" required>
+              </div>
+            </div>
+            <button class="btn-primary" type="submit">카테고리 추가</button>
+          </form>
+        </div>
+        <div class="col-6 card">
+          <h2>카테고리 목록</h2>
+          <table>
+            <thead>
+              <tr><th>대분류</th><th>중분류</th><th>소분류</th><th>작업</th></tr>
+            </thead>
+            <tbody id="catRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-reports" class="tab-panel hidden">
+      <div class="grid">
+        <div class="col-12 card">
+          <h2>월간 리포트</h2>
+          <div class="row">
+            <div class="field col-3">
+              <label for="reportMonth">기준 월</label>
+              <input id="reportMonth" type="month">
+            </div>
+            <div class="field col-3">
+              <label for="reportType">분석 대상</label>
+              <select id="reportType">
+                <option value="expense">지출</option>
+                <option value="income">수입</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 card">
+          <h3>대분류 지출/수입 비중</h3>
+          <canvas id="chartL1"></canvas>
+        </div>
+        <div class="col-6 card">
+          <h3>중분류 상위 항목</h3>
+          <canvas id="chartL2"></canvas>
+        </div>
+        <div class="col-12 card">
+          <h3>소분류 월별 추이(최근 6개월)</h3>
+          <canvas id="chartL3Trend"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-settings" class="tab-panel hidden">
+      <div class="grid">
+        <div class="col-12 card">
+          <h2>접속 설정</h2>
+          <p class="settings-hint">로그인한 계정에 가족 코드가 연결되어 있으며, URL·Anon Key는 이 브라우저에 저장됩니다. 공용 PC에서는 로그아웃 후 이용해 주세요. (배포본에 기본 URL·키를 넣어 두면 이 탭에서 키 입력 없이 쓸 수 있습니다.)</p>
+          <p class="settings-hint" id="settingsAccountLine" style="margin-top:-8px;"></p>
+          <div class="row" style="margin-bottom:14px;">
+            <button type="button" id="logoutBtn" class="btn-danger">로그아웃</button>
+          </div>
+          <div class="conn-box">
+            <div class="field col-4" data-settings-conn-field>
+              <label for="sbUrl">Supabase URL</label>
+              <input id="sbUrl" placeholder="https://xxxx.supabase.co" autocomplete="off">
+            </div>
+            <div class="field col-4" data-settings-conn-field>
+              <label for="sbAnonKey">Supabase Anon Key</label>
+              <input id="sbAnonKey" placeholder="eyJ..." type="password" autocomplete="off">
+            </div>
+            <div class="field col-2">
+              <label for="householdCode">가족 코드</label>
+              <input id="householdCode" placeholder="family-001" autocomplete="off">
+            </div>
+            <div class="field col-2">
+              <button id="connectBtn" class="btn-primary" type="button">연결</button>
+            </div>
+            <div class="col-12 conn-status" id="connStatus">Supabase 연결이 필요합니다.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  </div>
+
+  <script>
+    /** Vercel 배포 시 여기에 프로젝트 값을 넣으면 가입·로그인 화면에서 URL·Anon Key 입력란이 숨겨집니다. */
+    const DEFAULT_SUPABASE_URL = "";
+    const DEFAULT_SUPABASE_ANON_KEY = "";
+
+    const CONFIG_KEY = "couple-household-supabase-config-v1";
+    const KRW = new Intl.NumberFormat("ko-KR");
+    const today = new Date();
+    const ymNow = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+
+    const defaultCategories = [
+      { l1: "생활비", l2: "식비", l3: "장보기" },
+      { l1: "생활비", l2: "식비", l3: "외식" },
+      { l1: "생활비", l2: "교통", l3: "대중교통" },
+      { l1: "고정비", l2: "주거", l3: "월세/관리비" },
+      { l1: "고정비", l2: "통신", l3: "휴대폰" },
+      { l1: "수입", l2: "근로소득", l3: "월급" }
+    ];
+    const defaultUsers = ["배우자1", "배우자2"];
+
+    const state = {
+      users: [...defaultUsers],
+      categories: [],
+      transactions: []
+    };
+
+    let supabaseClient = null;
+    let channel = null;
+    let householdCode = "";
+    let refreshing = false;
+    let charts = { l1: null, l2: null, l3: null };
+    let lastClientUrl = "";
+    let lastClientKey = "";
+
+    function loadConfig() {
+      const raw = localStorage.getItem(CONFIG_KEY);
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch (_) {
+        return null;
+      }
+    }
+    function saveConfig(cfg) {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+    }
+
+    function hasEmbeddedSupabaseDefaults() {
+      return !!(String(DEFAULT_SUPABASE_URL || "").trim() && String(DEFAULT_SUPABASE_ANON_KEY || "").trim());
+    }
+
+    function resolveStoredUrlKey() {
+      const cfg = loadConfig() || {};
+      const url = (String(DEFAULT_SUPABASE_URL || "").trim() || String(cfg.url || "").trim());
+      const anonKey = (String(DEFAULT_SUPABASE_ANON_KEY || "").trim() || String(cfg.anonKey || "").trim());
+      return { url, anonKey, code: String(cfg.code || "").trim() };
+    }
+
+    function teardownRealtime() {
+      if (channel && supabaseClient) {
+        supabaseClient.removeChannel(channel);
+        channel = null;
+      }
+    }
+
+    function ensureClient(url, anonKey) {
+      const u = String(url || "").trim();
+      const k = String(anonKey || "").trim();
+      if (!u || !k) return null;
+      if (supabaseClient && lastClientUrl === u && lastClientKey === k) return supabaseClient;
+      teardownRealtime();
+      supabaseClient = window.supabase.createClient(u, k, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storage: localStorage
+        }
+      });
+      lastClientUrl = u;
+      lastClientKey = k;
+      return supabaseClient;
+    }
+
+    function setAuthError(msg, ok = false) {
+      const el = document.getElementById("authMsg");
+      if (!el) return;
+      el.textContent = msg || "";
+      el.classList.toggle("ok", !!ok);
+    }
+
+    function showAuthGate(clearMessage = true) {
+      const overlay = document.getElementById("authOverlay");
+      const main = document.getElementById("mainApp");
+      if (overlay) overlay.classList.remove("hidden");
+      if (main) main.classList.add("hidden");
+      if (clearMessage) setAuthError("");
+      syncGateFormFromConfig();
+    }
+
+    function hideAuthGateForApp() {
+      const overlay = document.getElementById("authOverlay");
+      const main = document.getElementById("mainApp");
+      if (overlay) overlay.classList.add("hidden");
+      if (main) main.classList.remove("hidden");
+    }
+
+    function updateGateRegisterVisibility() {
+      const wrap = document.getElementById("gateConnRegisterWrap");
+      if (wrap) wrap.classList.toggle("hidden", hasEmbeddedSupabaseDefaults());
+    }
+
+    function refreshLoginConnFieldsVisibility() {
+      const { url, anonKey } = resolveStoredUrlKey();
+      const has = !!(url && anonKey);
+      const wrap = document.getElementById("gateConnLoginWrap");
+      if (wrap) wrap.classList.toggle("hidden", has);
+    }
+
+    function syncDefaultsUiVisibility() {
+      const hideUrlKey = hasEmbeddedSupabaseDefaults();
+      document.querySelectorAll("[data-settings-conn-field]").forEach((el) => {
+        el.classList.toggle("hidden", hideUrlKey);
+      });
+    }
+
+    function syncGateFormFromConfig() {
+      const cfg = loadConfig();
+      const regUrl = document.getElementById("gateSbUrlReg");
+      const regKey = document.getElementById("gateSbKeyReg");
+      const regCode = document.getElementById("gateHouseholdReg");
+      if (cfg?.url && regUrl) regUrl.value = cfg.url;
+      if (cfg?.anonKey && regKey) regKey.value = cfg.anonKey;
+      if (cfg?.code && regCode) regCode.value = cfg.code;
+      refreshLoginConnFieldsVisibility();
+      updateGateRegisterVisibility();
+      syncDefaultsUiVisibility();
+    }
+
+    function switchAuthMode(mode) {
+      const loginTab = document.getElementById("authTabLogin");
+      const regTab = document.getElementById("authTabRegister");
+      const pLogin = document.getElementById("authPanelLogin");
+      const pReg = document.getElementById("authPanelRegister");
+      const isLogin = mode === "login";
+      if (loginTab && regTab) {
+        loginTab.classList.toggle("active", isLogin);
+        regTab.classList.toggle("active", !isLogin);
+      }
+      if (pLogin && pReg) {
+        pLogin.classList.toggle("active", isLogin);
+        pReg.classList.toggle("active", !isLogin);
+      }
+      if (isLogin) refreshLoginConnFieldsVisibility();
+      else updateGateRegisterVisibility();
+    }
+
+    function initAuthGateUI() {
+      document.getElementById("authTabLogin").onclick = () => switchAuthMode("login");
+      document.getElementById("authTabRegister").onclick = () => switchAuthMode("register");
+      document.getElementById("btnAuthLogin").onclick = () => onAuthLogin();
+      document.getElementById("btnAuthRegister").onclick = () => onAuthRegister();
+    }
+
+    async function onAuthRegister() {
+      setAuthError("");
+      const email = document.getElementById("gateEmailReg").value.trim();
+      const password = document.getElementById("gatePasswordReg").value;
+      const code = document.getElementById("gateHouseholdReg").value.trim();
+      const regUrl = (String(DEFAULT_SUPABASE_URL || "").trim() || document.getElementById("gateSbUrlReg").value.trim());
+      const regKey = (String(DEFAULT_SUPABASE_ANON_KEY || "").trim() || document.getElementById("gateSbKeyReg").value.trim());
+      if (!email || password.length < 6) {
+        setAuthError("이메일과 비밀번호(6자 이상)를 확인해 주세요.");
+        return;
+      }
+      if (!code) {
+        setAuthError("가족 코드(가계부 이름)를 입력해 주세요. 배우자분은 같은 코드로 가입하면 같은 가계부를 봅니다.");
+        return;
+      }
+      if (!regUrl || !regKey) {
+        setAuthError("Supabase URL과 Anon Key를 입력해 주세요.");
+        return;
+      }
+      const client = ensureClient(regUrl, regKey);
+      if (!client) return;
+      setAuthError("처리 중…", true);
+      const { data, error } = await client.auth.signUp({
+        email,
+        password,
+        options: { data: { household_code: code } }
+      });
+      if (error) {
+        setAuthError(error.message || "가입에 실패했습니다.");
+        return;
+      }
+      saveConfig({ url: regUrl, anonKey: regKey, code });
+      let sess = data.session;
+      if (!sess) {
+        const { data: d2 } = await client.auth.getSession();
+        sess = d2.session;
+      }
+      if (!sess) {
+        setAuthError("가입은 완료되었습니다. Supabase 대시보드에서 이메일 인증을 끄면 바로 입장할 수 있고, 켜 두었다면 메일의 링크를 눌러 주세요.", true);
+        return;
+      }
+      await enterApp(sess);
+    }
+
+    async function onAuthLogin() {
+      setAuthError("");
+      const email = document.getElementById("gateEmailIn").value.trim();
+      const password = document.getElementById("gatePasswordIn").value;
+      const cfg = loadConfig() || {};
+      let url = (String(DEFAULT_SUPABASE_URL || "").trim() || String(cfg.url || "").trim());
+      let anonKey = (String(DEFAULT_SUPABASE_ANON_KEY || "").trim() || String(cfg.anonKey || "").trim());
+      if (!url) url = document.getElementById("gateSbUrlLogin").value.trim();
+      if (!anonKey) anonKey = document.getElementById("gateSbKeyLogin").value.trim();
+      if (!url || !anonKey) {
+        setAuthError("이 기기에 Supabase URL·키가 없습니다. 아래에 입력하거나, 먼저 회원가입으로 저장해 주세요.");
+        document.getElementById("gateConnLoginWrap").classList.remove("hidden");
+        return;
+      }
+      if (!email || !password) {
+        setAuthError("이메일과 비밀번호를 입력해 주세요.");
+        return;
+      }
+      const client = ensureClient(url, anonKey);
+      if (!client) return;
+      setAuthError("로그인 중…", true);
+      const { data, error } = await client.auth.signInWithPassword({ email, password });
+      if (error) {
+        setAuthError(error.message || "로그인에 실패했습니다.");
+        return;
+      }
+      if (!data.session) {
+        setAuthError("세션을 만들 수 없습니다.");
+        return;
+      }
+      const metaCode = (data.session.user?.user_metadata?.household_code || "").trim();
+      saveConfig({ url, anonKey, code: metaCode || String(cfg.code || "").trim() });
+      await enterApp(data.session);
+    }
+
+    async function enterApp(session) {
+      setAuthError("");
+      const code = (session.user?.user_metadata?.household_code || "").trim();
+      if (!code) {
+        setAuthError("이 계정에 가족 코드가 없습니다. 회원가입 시 입력한 가족 코드가 필요합니다.");
+        showAuthGate(false);
+        return;
+      }
+      const { url, anonKey } = resolveStoredUrlKey();
+      if (!url || !anonKey) {
+        setAuthError("Supabase 연결 정보가 없습니다.");
+        showAuthGate(false);
+        return;
+      }
+      ensureClient(url, anonKey);
+      householdCode = code;
+      const sbUrl = document.getElementById("sbUrl");
+      const sbKey = document.getElementById("sbAnonKey");
+      const hh = document.getElementById("householdCode");
+      if (sbUrl) sbUrl.value = url;
+      if (sbKey) sbKey.value = anonKey;
+      if (hh) hh.value = code;
+      saveConfig({ url, anonKey, code });
+      const line = document.getElementById("settingsAccountLine");
+      if (line) line.textContent = session.user?.email ? `현재 계정: ${session.user.email}` : "";
+      setConnectionStatus("데이터 불러오는 중…", false);
+      try {
+        await ensureSeedData();
+        await reloadFromSupabase();
+        bindRealtime();
+        setConnectionStatus(`연결됨 · ${session.user?.email || ""} · 가족 코드 ${householdCode}`, true);
+        hideAuthGateForApp();
+      } catch (err) {
+        console.error(err);
+        setAuthError("DB에 연결하지 못했습니다. Supabase에 authenticated용 RLS 정책이 있는지(supabase_schema.sql), URL·키를 확인해 주세요.");
+        if (supabaseClient) await supabaseClient.auth.signOut();
+        showAuthGate(false);
+      }
+    }
+
+    async function tryAutoEnterFromSession() {
+      const { url, anonKey } = resolveStoredUrlKey();
+      if (!url || !anonKey) {
+        showAuthGate();
+        return;
+      }
+      const client = ensureClient(url, anonKey);
+      if (!client) {
+        showAuthGate();
+        return;
+      }
+      const { data: { session } } = await client.auth.getSession();
+      if (session) {
+        const code = (session.user?.user_metadata?.household_code || "").trim();
+        if (code) {
+          await enterApp(session);
+          return;
+        }
+        setAuthError("로그인 정보는 있으나 가족 코드가 없습니다. 같은 Supabase에서 다시 가입하거나 메타데이터를 확인해 주세요.");
+        showAuthGate(false);
+        return;
+      }
+      showAuthGate();
+    }
+
+    async function logout() {
+      teardownRealtime();
+      if (supabaseClient) {
+        try {
+          await supabaseClient.auth.signOut();
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+      householdCode = "";
+      supabaseClient = null;
+      lastClientUrl = "";
+      lastClientKey = "";
+      state.users = [...defaultUsers];
+      state.categories = [];
+      state.transactions = [];
+      const line = document.getElementById("settingsAccountLine");
+      if (line) line.textContent = "";
+      initUsers();
+      refreshAll();
+      setConnectionStatus("로그아웃되었습니다.", false);
+      showAuthGate();
+    }
+
+    function setConnectionStatus(msg, isOk = false) {
+      const el = document.getElementById("connStatus");
+      if (el) {
+        el.textContent = msg;
+        el.style.color = isOk ? "var(--success)" : "var(--muted)";
+      }
+    }
+    function formatCurrency(n) {
+      return `${KRW.format(Number(n || 0))}원`;
+    }
+    /** Supabase date / timestamptz 등 어떤 형식이든 YYYY-MM-DD로 맞춤 */
+    function normalizeTransactionDate(v) {
+      if (v == null || v === "") return "";
+      const s = String(v).trim();
+      const ymd = s.match(/^(\d{4}-\d{2}-\d{2})/);
+      if (ymd) return ymd[1];
+      const d = new Date(s);
+      if (!Number.isNaN(d.getTime())) {
+        const y = d.getFullYear();
+        const mo = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${mo}-${day}`;
+      }
+      return "";
+    }
+    function monthKeyFromDate(v) {
+      const ymd = normalizeTransactionDate(v);
+      return ymd ? ymd.slice(0, 7) : "";
+    }
+    function setOptions(select, values, placeholder = "선택") {
+      select.innerHTML = "";
+      values.forEach((v, i) => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        if (i === 0 && placeholder && v === "") opt.textContent = placeholder;
+        select.appendChild(opt);
+      });
+    }
+
+    function initUsers() {
+      const activeUser = document.getElementById("activeUser");
+      const txOwner = document.getElementById("txOwner");
+      const filterOwner = document.getElementById("filterOwner");
+      activeUser.innerHTML = "";
+      txOwner.innerHTML = "";
+      filterOwner.innerHTML = '<option value="">전체</option>';
+      state.users.forEach((u) => {
+        [activeUser, txOwner].forEach((sel) => {
+          const o = document.createElement("option");
+          o.value = u;
+          o.textContent = u;
+          sel.appendChild(o);
+        });
+        const fo = document.createElement("option");
+        fo.value = u;
+        fo.textContent = u;
+        filterOwner.appendChild(fo);
+      });
+      txOwner.value = activeUser.value || state.users[0];
+    }
+
+    function buildCategoryHierarchy() {
+      const l1Map = new Map();
+      state.categories.forEach((c) => {
+        if (!l1Map.has(c.l1)) l1Map.set(c.l1, new Map());
+        const l2Map = l1Map.get(c.l1);
+        if (!l2Map.has(c.l2)) l2Map.set(c.l2, new Set());
+        l2Map.get(c.l2).add(c.l3);
+      });
+      return l1Map;
+    }
+
+    function refreshCategorySelectors() {
+      const l1 = document.getElementById("catL1");
+      const l2 = document.getElementById("catL2");
+      const l3 = document.getElementById("catL3");
+      const tree = buildCategoryHierarchy();
+      const l1Keys = [...tree.keys()];
+      if (!l1Keys.length) {
+        setOptions(l1, []);
+        setOptions(l2, []);
+        setOptions(l3, []);
+        return;
+      }
+      setOptions(l1, l1Keys);
+      const firstL1 = l1.value || l1Keys[0];
+      const l2Keys = firstL1 ? [...tree.get(firstL1).keys()] : [];
+      setOptions(l2, l2Keys);
+      const firstL2 = l2.value || l2Keys[0];
+      const l3Keys = (firstL1 && firstL2) ? [...tree.get(firstL1).get(firstL2)] : [];
+      setOptions(l3, l3Keys);
+
+      l1.onchange = () => {
+        const innerL2 = [...(tree.get(l1.value)?.keys() || [])];
+        setOptions(l2, innerL2);
+        const innerL3 = innerL2.length ? [...tree.get(l1.value).get(innerL2[0])] : [];
+        setOptions(l3, innerL3);
+      };
+      l2.onchange = () => {
+        const innerL3 = (tree.get(l1.value) && tree.get(l1.value).get(l2.value))
+          ? [...tree.get(l1.value).get(l2.value)]
+          : [];
+        setOptions(l3, innerL3);
+      };
+    }
+
+    function renderCategoryRows() {
+      const tbody = document.getElementById("catRows");
+      tbody.innerHTML = "";
+      state.categories
+        .sort((a, b) => `${a.l1}|${a.l2}|${a.l3}`.localeCompare(`${b.l1}|${b.l2}|${b.l3}`))
+        .forEach((c) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${c.l1}</td>
+            <td>${c.l2}</td>
+            <td>${c.l3}</td>
+            <td>
+              <button data-del-cat="${c.id}" class="btn-danger">삭제</button>
+            </td>`;
+          tbody.appendChild(tr);
+        });
+      tbody.querySelectorAll("[data-del-cat]").forEach((btn) => {
+        btn.onclick = () => {
+          const id = btn.getAttribute("data-del-cat");
+          const cat = state.categories.find((c) => c.id === id);
+          const linked = state.transactions.some((t) => t.categoryId === id);
+          if (linked) {
+            alert("이 카테고리는 거래내역에서 사용 중이라 삭제할 수 없습니다.");
+            return;
+          }
+          deleteCategoryRemote(id);
+        };
+      });
+    }
+
+    function getFilteredTransactions() {
+      const allMonths = document.getElementById("filterAllMonths").checked;
+      const m = document.getElementById("filterMonth").value || ymNow;
+      const type = document.getElementById("filterType").value;
+      const owner = document.getElementById("filterOwner").value.trim();
+      return state.transactions
+        .filter((t) => allMonths || monthKeyFromDate(t.date) === m)
+        .filter((t) => !type || t.type === type)
+        .filter((t) => !owner || (t.owner || "").trim() === owner)
+        .sort((a, b) => normalizeTransactionDate(b.date).localeCompare(normalizeTransactionDate(a.date)));
+    }
+
+    function renderTransactions() {
+      const tbody = document.getElementById("txRows");
+      const rows = getFilteredTransactions();
+      tbody.innerHTML = "";
+      rows.forEach((t) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${normalizeTransactionDate(t.date)}</td>
+          <td><span class="pill ${t.type}">${t.type === "income" ? "수입" : "지출"}</span></td>
+          <td>${formatCurrency(t.amount)}</td>
+          <td>${t.l1} > ${t.l2} > ${t.l3}</td>
+          <td>${t.memo || ""}</td>
+          <td>${t.owner}</td>
+          <td class="actions">
+            <button data-edit="${t.id}">수정</button>
+            <button data-del="${t.id}" class="btn-danger">삭제</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll("[data-edit]").forEach((btn) => {
+        btn.onclick = () => fillTransactionForm(btn.getAttribute("data-edit"));
+      });
+      tbody.querySelectorAll("[data-del]").forEach((btn) => {
+        btn.onclick = () => {
+          const id = btn.getAttribute("data-del");
+          deleteTransactionRemote(id);
+        };
+      });
+    }
+
+    function fillTransactionForm(id) {
+      const t = state.transactions.find((x) => x.id === id);
+      if (!t) return;
+      document.getElementById("txId").value = t.id;
+      document.getElementById("txDate").value = normalizeTransactionDate(t.date);
+      document.getElementById("txType").value = t.type;
+      document.getElementById("txAmount").value = t.amount;
+      document.getElementById("txOwner").value = t.owner;
+      document.getElementById("txMemo").value = t.memo || "";
+      document.getElementById("catL1").value = t.l1;
+      document.getElementById("catL1").dispatchEvent(new Event("change"));
+      document.getElementById("catL2").value = t.l2;
+      document.getElementById("catL2").dispatchEvent(new Event("change"));
+      document.getElementById("catL3").value = t.l3;
+    }
+
+    function resetTransactionForm() {
+      document.getElementById("txForm").reset();
+      document.getElementById("txId").value = "";
+      document.getElementById("txDate").valueAsDate = new Date();
+      document.getElementById("filterMonth").value = ymNow;
+      document.getElementById("reportMonth").value = ymNow;
+      refreshCategorySelectors();
+      document.getElementById("txOwner").value = document.getElementById("activeUser").value || state.users[0];
+    }
+
+    function renderDashboard() {
+      const month = ymNow;
+      const monthTx = state.transactions.filter((t) => monthKeyFromDate(t.date) === month);
+      const income = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
+      const expense = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
+      document.getElementById("sumIncome").textContent = formatCurrency(income);
+      document.getElementById("sumExpense").textContent = formatCurrency(expense);
+      document.getElementById("sumBalance").textContent = formatCurrency(income - expense);
+
+      const recent = [...state.transactions].sort((a, b) =>
+        normalizeTransactionDate(b.date).localeCompare(normalizeTransactionDate(a.date))
+      ).slice(0, 5);
+      const tbody = document.getElementById("recentRows");
+      tbody.innerHTML = "";
+      recent.forEach((t) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${normalizeTransactionDate(t.date)}</td>
+          <td>${t.type === "income" ? "수입" : "지출"}</td>
+          <td>${formatCurrency(t.amount)}</td>
+          <td>${t.l1} > ${t.l2} > ${t.l3}</td>
+          <td>${t.memo || ""}</td>
+          <td>${t.owner}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function aggregateBy(rows, key) {
+      return rows.reduce((acc, cur) => {
+        acc[cur[key]] = (acc[cur[key]] || 0) + Number(cur.amount);
+        return acc;
+      }, {});
+    }
+
+    function buildReports() {
+      const month = document.getElementById("reportMonth").value || ymNow;
+      const type = document.getElementById("reportType").value;
+      const rows = state.transactions.filter((t) => monthKeyFromDate(t.date) === month && t.type === type);
+
+      const byL1 = aggregateBy(rows, "l1");
+      const byL2 = aggregateBy(rows, "l2");
+
+      const labelsL1 = Object.keys(byL1);
+      const valuesL1 = Object.values(byL1);
+      const l2Pairs = Object.entries(byL2).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+      const trendMonths = [];
+      const base = new Date(month + "-01");
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(base.getFullYear(), base.getMonth() - i, 1);
+        trendMonths.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+      }
+      const allL3 = [...new Set(rows.map((r) => r.l3))].slice(0, 6);
+      const datasets = allL3.map((name, idx) => {
+        const color = `hsl(${(idx * 60) % 360} 70% 45%)`;
+        return {
+          label: name,
+          borderColor: color,
+          backgroundColor: color,
+          fill: false,
+          data: trendMonths.map((m) =>
+            state.transactions
+              .filter((t) => monthKeyFromDate(t.date) === m && t.type === type && t.l3 === name)
+              .reduce((s, t) => s + Number(t.amount), 0)
+          )
+        };
+      });
+
+      if (charts.l1) charts.l1.destroy();
+      if (charts.l2) charts.l2.destroy();
+      if (charts.l3) charts.l3.destroy();
+
+      charts.l1 = new Chart(document.getElementById("chartL1"), {
+        type: "doughnut",
+        data: {
+          labels: labelsL1.length ? labelsL1 : ["데이터 없음"],
+          datasets: [{ data: valuesL1.length ? valuesL1 : [1] }]
+        }
+      });
+      charts.l2 = new Chart(document.getElementById("chartL2"), {
+        type: "bar",
+        data: {
+          labels: l2Pairs.length ? l2Pairs.map((x) => x[0]) : ["데이터 없음"],
+          datasets: [{
+            label: "금액",
+            data: l2Pairs.length ? l2Pairs.map((x) => x[1]) : [0],
+            backgroundColor: "#2563eb"
+          }]
+        },
+        options: { plugins: { legend: { display: false } } }
+      });
+      charts.l3 = new Chart(document.getElementById("chartL3Trend"), {
+        type: "line",
+        data: {
+          labels: trendMonths,
+          datasets: datasets.length ? datasets : [{ label: "데이터 없음", data: trendMonths.map(() => 0), borderColor: "#94a3b8" }]
+        },
+        options: { tension: 0.25 }
+      });
+    }
+
+    function refreshAll() {
+      refreshCategorySelectors();
+      renderCategoryRows();
+      renderTransactions();
+      renderDashboard();
+      buildReports();
+    }
+
+    function initEvents() {
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.onclick = () => {
+          document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          const name = btn.getAttribute("data-tab");
+          document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
+          document.getElementById(`tab-${name}`).classList.remove("hidden");
+          if (name === "reports") buildReports();
+        };
+      });
+
+      document.getElementById("activeUser").onchange = (e) => {
+        document.getElementById("txOwner").value = e.target.value;
+      };
+
+      ["filterMonth", "filterType", "filterOwner"].forEach((id) => {
+        document.getElementById(id).onchange = renderTransactions;
+      });
+      document.getElementById("filterAllMonths").onchange = () => {
+        const inp = document.getElementById("filterMonth");
+        inp.disabled = document.getElementById("filterAllMonths").checked;
+        renderTransactions();
+      };
+      ["reportMonth", "reportType"].forEach((id) => {
+        document.getElementById(id).onchange = buildReports;
+      });
+
+      document.getElementById("txForm").onsubmit = (e) => {
+        e.preventDefault();
+        if (!supabaseClient || !householdCode) {
+          alert("로그인한 뒤 자동으로 연결됩니다. 세션이 끊겼다면 다시 로그인해 주세요.");
+          return;
+        }
+        const id = document.getElementById("txId").value;
+        const l1 = document.getElementById("catL1").value;
+        const l2 = document.getElementById("catL2").value;
+        const l3 = document.getElementById("catL3").value;
+        const category = state.categories.find((c) => c.l1 === l1 && c.l2 === l2 && c.l3 === l3);
+        const payload = {
+          id: id || crypto.randomUUID(),
+          date: document.getElementById("txDate").value,
+          type: document.getElementById("txType").value,
+          amount: Number(document.getElementById("txAmount").value),
+          owner: document.getElementById("txOwner").value,
+          memo: document.getElementById("txMemo").value.trim(),
+          categoryId: category?.id || null,
+          l1, l2, l3,
+          household_code: householdCode
+        };
+        if (!payload.date || !payload.amount || !payload.owner || !payload.l1 || !payload.l2 || !payload.l3) return;
+        upsertTransactionRemote(payload);
+      };
+
+      document.getElementById("resetTxBtn").onclick = resetTransactionForm;
+
+      document.getElementById("catForm").onsubmit = (e) => {
+        e.preventDefault();
+        if (!supabaseClient || !householdCode) {
+          alert("로그인한 뒤 자동으로 연결됩니다. 세션이 끊겼다면 다시 로그인해 주세요.");
+          return;
+        }
+        const l1 = document.getElementById("newL1").value.trim();
+        const l2 = document.getElementById("newL2").value.trim();
+        const l3 = document.getElementById("newL3").value.trim();
+        const exists = state.categories.some((c) => c.l1 === l1 && c.l2 === l2 && c.l3 === l3);
+        if (!l1 || !l2 || !l3) return;
+        if (exists) {
+          alert("이미 존재하는 카테고리입니다.");
+          return;
+        }
+        addCategoryRemote({ l1, l2, l3, household_code: householdCode });
+      };
+
+      document.getElementById("connectBtn").onclick = connectSupabase;
+      document.getElementById("logoutBtn").onclick = () => {
+        if (confirm("로그아웃할까요?")) logout();
+      };
+    }
+
+    async function connectSupabase() {
+      const cfg = loadConfig() || {};
+      const url = (
+        document.getElementById("sbUrl").value.trim()
+        || String(DEFAULT_SUPABASE_URL || "").trim()
+        || String(cfg.url || "").trim()
+      );
+      const anonKey = (
+        document.getElementById("sbAnonKey").value.trim()
+        || String(DEFAULT_SUPABASE_ANON_KEY || "").trim()
+        || String(cfg.anonKey || "").trim()
+      );
+      const code = document.getElementById("householdCode").value.trim();
+      if (!url || !anonKey || !code) {
+        setConnectionStatus("URL, Anon Key, 가족 코드를 모두 입력해 주세요.");
+        return;
+      }
+
+      setConnectionStatus("Supabase 연결 시도 중...");
+      try {
+        ensureClient(url, anonKey);
+        householdCode = code;
+        saveConfig({ url, anonKey, code });
+        await ensureSeedData();
+        await reloadFromSupabase();
+        bindRealtime();
+        setConnectionStatus(`연결됨: 가족 코드 ${householdCode}`, true);
+      } catch (err) {
+        console.error(err);
+        setConnectionStatus("연결 실패: URL/키/테이블 설정을 확인해 주세요.");
+      }
+    }
+
+    function bindRealtime() {
+      if (!supabaseClient) return;
+      if (channel) {
+        supabaseClient.removeChannel(channel);
+      }
+      channel = supabaseClient
+        .channel(`household-${householdCode}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "transactions", filter: `household_code=eq.${householdCode}` },
+          () => reloadFromSupabase()
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "categories", filter: `household_code=eq.${householdCode}` },
+          () => reloadFromSupabase()
+        )
+        .subscribe();
+    }
+
+    async function ensureSeedData() {
+      const { data: usersData, error: userError } = await supabaseClient
+        .from("household_users")
+        .select("id")
+        .eq("household_code", householdCode)
+        .limit(1);
+      if (userError) throw userError;
+      if (!usersData.length) {
+        const seedUsers = defaultUsers.map((name) => ({ household_code: householdCode, name }));
+        const { error } = await supabaseClient.from("household_users").insert(seedUsers);
+        if (error) throw error;
+      }
+
+      const { data: catData, error: catError } = await supabaseClient
+        .from("categories")
+        .select("id")
+        .eq("household_code", householdCode)
+        .limit(1);
+      if (catError) throw catError;
+      if (!catData.length) {
+        const seedCategories = defaultCategories.map((c) => ({ ...c, household_code: householdCode }));
+        const { error } = await supabaseClient.from("categories").insert(seedCategories);
+        if (error) throw error;
+      }
+    }
+
+    async function reloadFromSupabase() {
+      if (!supabaseClient || !householdCode || refreshing) return;
+      refreshing = true;
+      try {
+        const [usersRes, catRes, txRes] = await Promise.all([
+          supabaseClient.from("household_users").select("*").eq("household_code", householdCode).order("created_at", { ascending: true }),
+          supabaseClient.from("categories").select("*").eq("household_code", householdCode).order("l1", { ascending: true }).order("l2", { ascending: true }).order("l3", { ascending: true }),
+          supabaseClient
+            .from("transactions")
+            .select("*")
+            .eq("household_code", householdCode)
+            .order("date", { ascending: false })
+            .limit(10000)
+        ]);
+        if (usersRes.error) throw usersRes.error;
+        if (catRes.error) throw catRes.error;
+        if (txRes.error) throw txRes.error;
+
+        state.users = usersRes.data.map((u) => (u.name || "").trim());
+        state.categories = catRes.data.map((c) => ({
+          id: c.id, l1: c.l1, l2: c.l2, l3: c.l3, household_code: c.household_code
+        }));
+        state.transactions = txRes.data.map((t) => ({
+          id: t.id,
+          date: normalizeTransactionDate(t.date),
+          type: t.type,
+          amount: t.amount,
+          owner: (t.owner || "").trim(),
+          memo: (t.memo || "").trim(),
+          categoryId: t.category_id,
+          l1: t.l1,
+          l2: t.l2,
+          l3: t.l3
+        }));
+        initUsers();
+        refreshAll();
+      } finally {
+        refreshing = false;
+      }
+    }
+
+    async function addCategoryRemote(payload) {
+      const { error } = await supabaseClient.from("categories").insert(payload);
+      if (error) {
+        alert("카테고리 저장에 실패했습니다.");
+        console.error(error);
+        return;
+      }
+      document.getElementById("catForm").reset();
+      await reloadFromSupabase();
+    }
+
+    async function deleteCategoryRemote(id) {
+      const { error } = await supabaseClient
+        .from("categories")
+        .delete()
+        .eq("id", id)
+        .eq("household_code", householdCode);
+      if (error) {
+        alert("카테고리 삭제에 실패했습니다.");
+        console.error(error);
+        return;
+      }
+      await reloadFromSupabase();
+    }
+
+    async function upsertTransactionRemote(payload) {
+      const row = {
+        id: payload.id,
+        household_code: payload.household_code,
+        date: payload.date,
+        type: payload.type,
+        amount: payload.amount,
+        owner: payload.owner,
+        memo: payload.memo,
+        category_id: payload.categoryId,
+        l1: payload.l1,
+        l2: payload.l2,
+        l3: payload.l3
+      };
+      const { error } = await supabaseClient.from("transactions").upsert(row);
+      if (error) {
+        alert("거래 저장에 실패했습니다.");
+        console.error(error);
+        return;
+      }
+      resetTransactionForm();
+      await reloadFromSupabase();
+    }
+
+    async function deleteTransactionRemote(id) {
+      const { error } = await supabaseClient
+        .from("transactions")
+        .delete()
+        .eq("id", id)
+        .eq("household_code", householdCode);
+      if (error) {
+        alert("거래 삭제에 실패했습니다.");
+        console.error(error);
+        return;
+      }
+      await reloadFromSupabase();
+    }
+
+    async function boot() {
+      document.getElementById("txDate").valueAsDate = new Date();
+      document.getElementById("filterMonth").value = ymNow;
+      document.getElementById("reportMonth").value = ymNow;
+      initAuthGateUI();
+      initEvents();
+      const cfg = loadConfig();
+      const defUrl = String(DEFAULT_SUPABASE_URL || "").trim();
+      const defKey = String(DEFAULT_SUPABASE_ANON_KEY || "").trim();
+      document.getElementById("sbUrl").value = defUrl || (cfg?.url || "");
+      document.getElementById("sbAnonKey").value = defKey || (cfg?.anonKey || "");
+      document.getElementById("householdCode").value = cfg?.code || "";
+      syncDefaultsUiVisibility();
+      if (cfg?.url && cfg?.anonKey) {
+        setConnectionStatus("저장된 연결 정보가 있습니다. 로그인하면 자동으로 가계부에 연결됩니다.", false);
+      } else if (defUrl && defKey) {
+        setConnectionStatus("배포 기본 Supabase가 설정되어 있습니다. 회원가입 또는 로그인해 주세요.", false);
+      } else {
+        setConnectionStatus("회원가입에서 URL·키·가족 코드를 한 번 저장한 뒤, 이후에는 로그인만 하면 됩니다.", false);
+      }
+      initUsers();
+      refreshAll();
+      await tryAutoEnterFromSession();
+    }
+    boot();
+  </script>
+</body>
+</html>

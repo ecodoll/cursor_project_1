@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>우주비행선 슈팅 게임</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top, #152448 0%, #080b17 55%, #05060d 100%);
+      color: #f2f5ff;
+      padding: 24px;
+    }
+
+    .game-wrap {
+      width: min(100%, 860px);
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 16px;
+    }
+
+    .panel {
+      background: rgba(8, 11, 23, 0.72);
+      border: 1px solid rgba(187, 203, 255, 0.22);
+      border-radius: 14px;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(3px);
+    }
+
+    canvas {
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      display: block;
+      border-radius: 14px;
+      border: 1px solid rgba(187, 203, 255, 0.24);
+      background: linear-gradient(to bottom, #060b18 0%, #0b1124 100%);
+    }
+
+    .hud {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .hud h1 {
+      font-size: 20px;
+      color: #d4ddff;
+    }
+
+    .stat {
+      background: rgba(120, 146, 255, 0.1);
+      border: 1px solid rgba(120, 146, 255, 0.24);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+
+    .rules {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #e4ebff;
+      opacity: 0.9;
+    }
+
+    .rules ul {
+      padding-left: 18px;
+      margin-top: 8px;
+    }
+
+    .rules li + li {
+      margin-top: 6px;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #a6b8f8;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 780px) {
+      .game-wrap {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="game-wrap">
+    <section class="panel">
+      <canvas id="game" width="540" height="720"></canvas>
+    </section>
+    <aside class="panel hud">
+      <h1>우주비행선 슈팅</h1>
+      <div class="stat">점수: <strong id="score">0</strong></div>
+      <div class="stat">생명: <strong id="life">3</strong></div>
+      <div class="stat">최고 점수: <strong id="best">0</strong></div>
+      <section class="rules">
+        <strong>게임 규칙</strong>
+        <ul>
+          <li>이동: <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></li>
+          <li>발사: <kbd>스페이스바</kbd> (자동 연사)</li>
+          <li>10기 격추 시 2줄, 20기 격추 시 3줄 발사</li>
+          <li>20기 격추 시 보스 출현, 50회 피격 시 보스 격파</li>
+          <li>적을 맞추면 점수 +10</li>
+          <li>적 미사일에 맞으면 생명 -1</li>
+          <li>적과 충돌하면 생명 -1 (바닥 도달은 패널티 없음)</li>
+          <li>생명이 0이 되면 게임 오버, <kbd>R</kbd>로 재시작</li>
+        </ul>
+      </section>
+      <p class="hint">브라우저에서 이 파일을 열면 바로 플레이할 수 있습니다.</p>
+    </aside>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const scoreEl = document.getElementById("score");
+    const lifeEl = document.getElementById("life");
+    const bestEl = document.getElementById("best");
+
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    const keys = {};
+    const stars = Array.from({ length: 120 }, () => ({
+      x: Math.random() * WIDTH,
+      y: Math.random() * HEIGHT,
+      s: Math.random() * 2 + 0.4,
+      v: Math.random() * 0.7 + 0.2
+    }));
+
+    const player = {
+      x: WIDTH / 2,
+      y: HEIGHT - 72,
+      width: 64,
+      height: 72,
+      speed: 6,
+      shootCooldown: 0
+    };
+
+    let bullets = [];
+    let enemies = [];
+    let enemyBullets = [];
+    let explosions = [];
+    let enemyTimer = 0;
+    let enemyInterval = 45;
+    let score = 0;
+    let enemyKills = 0;
+    let life = 3;
+    let boss = null;
+    let bossDefeated = false;
+    let bossAlertTimer = 0;
+    let best = Number(localStorage.getItem("space_best_score") || 0);
+    let gameOver = false;
+    let frame = 0;
+
+    bestEl.textContent = best;
+
+    function resetGame() {
+      bullets = [];
+      enemies = [];
+      enemyBullets = [];
+      explosions = [];
+      enemyTimer = 0;
+      enemyInterval = 45;
+      score = 0;
+      enemyKills = 0;
+      life = 3;
+      boss = null;
+      bossDefeated = false;
+      bossAlertTimer = 0;
+      gameOver = false;
+      player.x = WIDTH / 2;
+      player.y = HEIGHT - 72;
+      player.shootCooldown = 0;
+      updateHud();
+    }
+
+    function updateHud() {
+      scoreEl.textContent = score;
+      lifeEl.textContent = life;
+      bestEl.textContent = best;
+    }
+
+    function spawnEnemy() {
+      const size = 24 + Math.random() * 18;
+      const minSpeed = 1.5 + Math.min(score / 400, 2);
+      enemies.push({
+        x: Math.random() * (WIDTH - size),
+        y: -size - 8,
+        width: size,
+        height: size,
+        speed: minSpeed + Math.random() * 2.1,
+        shootCooldown: 42 + Math.floor(Math.random() * 58)
+      });
+    }
+
+    function shoot() {
+      let laneOffsets = [0];
+      if (enemyKills >= 20) {
+        laneOffsets = [-16, 0, 16];
+      } else if (enemyKills >= 10) {
+        laneOffsets = [-10, 10];
+      }
+
+      laneOffsets.forEach((offset) => {
+        bullets.push({
+          x: player.x + offset - 2,
+          y: player.y - player.height / 2,
+          width: 4,
+          height: 12,
+          speed: 10
+        });
+      });
+    }
+
+    function isColliding(a, b) {
+      return (
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
+      );
+    }
+
+    function damage() {
+      life -= 1;
+      if (life <= 0) {
+        life = 0;
+        gameOver = true;
+      }
+      updateHud();
+    }
+
+    function drawPlayer() {
+      const px = player.x;
+      const py = player.y;
+      ctx.save();
+      ctx.translate(px, py);
+
+      // F-16 느낌의 실루엣: 날카로운 노즈, 긴 동체, 델타형 날개
+      ctx.fillStyle = "#a9b6d4";
+      ctx.beginPath();
+      ctx.moveTo(0, -38);
+      ctx.lineTo(8, -26);
+      ctx.lineTo(9, 30);
+      ctx.lineTo(0, 36);
+      ctx.lineTo(-9, 30);
+      ctx.lineTo(-8, -26);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#8f9ec1";
+      ctx.beginPath();
+      ctx.moveTo(-28, 6);
+      ctx.lineTo(-10, 0);
+      ctx.lineTo(-7, 17);
+      ctx.lineTo(-18, 20);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(28, 6);
+      ctx.lineTo(10, 0);
+      ctx.lineTo(7, 17);
+      ctx.lineTo(18, 20);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#7b88a8";
+      ctx.beginPath();
+      ctx.moveTo(-8, 24);
+      ctx.lineTo(-20, 36);
+      ctx.lineTo(-5, 31);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(8, 24);
+      ctx.lineTo(20, 36);
+      ctx.lineTo(5, 31);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#2f3f6f";
+      ctx.beginPath();
+      ctx.moveTo(0, -27);
+      ctx.lineTo(5, -20);
+      ctx.lineTo(5, -8);
+      ctx.lineTo(0, -4);
+      ctx.lineTo(-5, -8);
+      ctx.lineTo(-5, -20);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#ffae4c";
+      ctx.beginPath();
+      ctx.moveTo(-5, 32);
+      ctx.lineTo(-1, 46 + Math.sin(frame / 4) * 2);
+      ctx.lineTo(0, 32);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(5, 32);
+      ctx.lineTo(1, 46 + Math.sin(frame / 4 + 1) * 2);
+      ctx.lineTo(0, 32);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawBullet(b) {
+      ctx.fillStyle = "#ffe66d";
+      ctx.fillRect(b.x, b.y, b.width, b.height);
+      ctx.fillStyle = "#fff8ca";
+      ctx.fillRect(b.x, b.y - 4, b.width, 4);
+    }
+
+    function drawEnemy(e) {
+      ctx.save();
+      ctx.translate(e.x + e.width / 2, e.y + e.height / 2);
+      ctx.fillStyle = "#ff5c8b";
+      ctx.beginPath();
+      ctx.moveTo(0, -e.height / 2);
+      ctx.lineTo(e.width / 2, 0);
+      ctx.lineTo(0, e.height / 2);
+      ctx.lineTo(-e.width / 2, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#ffd4e3";
+      ctx.beginPath();
+      ctx.arc(0, 0, e.width / 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawEnemyBullet(b) {
+      ctx.fillStyle = "#ff7a9b";
+      ctx.fillRect(b.x, b.y, b.width, b.height);
+      ctx.fillStyle = "#ffd2df";
+      ctx.fillRect(b.x, b.y + b.height - 3, b.width, 3);
+    }
+
+    function spawnBoss() {
+      boss = {
+        x: WIDTH / 2,
+        y: -130,
+        width: 182,
+        height: 96,
+        vx: 2.4,
+        hp: 50,
+        maxHp: 50,
+        shootCooldown: 30
+      };
+      bossAlertTimer = 140;
+      enemies = [];
+      enemyBullets = [];
+    }
+
+    function drawBoss() {
+      if (!boss) {
+        return;
+      }
+
+      const bx = boss.x;
+      const by = boss.y;
+      const w = boss.width;
+      const h = boss.height;
+
+      ctx.save();
+      ctx.translate(bx, by);
+
+      // 캐리어 느낌의 본체 (타원 선체 + 측면 포드)
+      ctx.fillStyle = "#a47bff";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, w * 0.34, h * 0.38, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#8d65ea";
+      ctx.beginPath();
+      ctx.ellipse(-w * 0.32, 0, w * 0.18, h * 0.28, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(w * 0.32, 0, w * 0.18, h * 0.28, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#c6b1ff";
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.18, -h * 0.15);
+      ctx.lineTo(0, -h * 0.34);
+      ctx.lineTo(w * 0.18, -h * 0.15);
+      ctx.lineTo(w * 0.08, h * 0.1);
+      ctx.lineTo(-w * 0.08, h * 0.1);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#f4e9ff";
+      ctx.beginPath();
+      ctx.arc(0, -h * 0.06, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      const barWidth = 220;
+      const hpRatio = boss.hp / boss.maxHp;
+      ctx.fillStyle = "rgba(20, 24, 38, 0.85)";
+      ctx.fillRect(WIDTH / 2 - barWidth / 2, 16, barWidth, 14);
+      ctx.fillStyle = "#7e52ff";
+      ctx.fillRect(WIDTH / 2 - barWidth / 2 + 2, 18, (barWidth - 4) * hpRatio, 10);
+      ctx.strokeStyle = "#d9cbff";
+      ctx.strokeRect(WIDTH / 2 - barWidth / 2, 16, barWidth, 14);
+    }
+
+    function drawBossAlert() {
+      if (bossAlertTimer <= 0) {
+        return;
+      }
+
+      const alpha = Math.min(1, bossAlertTimer / 35);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = "rgba(10, 5, 28, 0.7)";
+      ctx.fillRect(0, HEIGHT / 2 - 48, WIDTH, 80);
+      ctx.fillStyle = "#f4d3ff";
+      ctx.textAlign = "center";
+      ctx.font = "bold 44px Segoe UI";
+      ctx.fillText("보스 출현", WIDTH / 2, HEIGHT / 2 + 8);
+      ctx.globalAlpha = 1;
+    }
+
+    function spawnExplosion(x, y, color) {
+      const particles = 12 + Math.floor(Math.random() * 7);
+      for (let i = 0; i < particles; i += 1) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1.3 + Math.random() * 2.4;
+        explosions.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          radius: 1.8 + Math.random() * 2.6,
+          life: 16 + Math.floor(Math.random() * 10),
+          maxLife: 24,
+          color
+        });
+      }
+    }
+
+    function drawExplosions() {
+      for (let i = explosions.length - 1; i >= 0; i -= 1) {
+        const p = explosions[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.98;
+        p.vy *= 0.98;
+        p.life -= 1;
+        if (p.life <= 0) {
+          explosions.splice(i, 1);
+          continue;
+        }
+
+        const alpha = Math.max(0, p.life / p.maxLife);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function drawBackground() {
+      ctx.fillStyle = "rgba(5, 9, 20, 0.35)";
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+      ctx.fillStyle = "#d6e2ff";
+      for (const star of stars) {
+        star.y += star.v;
+        if (star.y > HEIGHT + 5) {
+          star.y = -5;
+          star.x = Math.random() * WIDTH;
+        }
+        ctx.globalAlpha = 0.35 + star.s / 4;
+        ctx.fillRect(star.x, star.y, star.s, star.s);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function drawGameOver() {
+      ctx.fillStyle = "rgba(2, 4, 10, 0.62)";
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.font = "bold 52px Segoe UI";
+      ctx.fillText("GAME OVER", WIDTH / 2, HEIGHT / 2 - 20);
+      ctx.font = "22px Segoe UI";
+      ctx.fillStyle = "#d8e2ff";
+      ctx.fillText("R 키를 눌러 다시 시작", WIDTH / 2, HEIGHT / 2 + 32);
+    }
+
+    function update() {
+      frame += 1;
+      drawBackground();
+
+      if (!gameOver) {
+        if (keys.ArrowLeft) {
+          player.x -= player.speed;
+        }
+        if (keys.ArrowRight) {
+          player.x += player.speed;
+        }
+        if (keys.ArrowUp) {
+          player.y -= player.speed;
+        }
+        if (keys.ArrowDown) {
+          player.y += player.speed;
+        }
+        player.x = Math.max(player.width / 2, Math.min(WIDTH - player.width / 2, player.x));
+        player.y = Math.max(player.height / 2, Math.min(HEIGHT - player.height / 2, player.y));
+
+        if (keys.Space && player.shootCooldown <= 0) {
+          shoot();
+          player.shootCooldown = 10;
+        }
+        player.shootCooldown -= 1;
+
+        enemyTimer += 1;
+        if (!boss && !bossDefeated && enemyKills >= 20) {
+          spawnBoss();
+        }
+
+        if (!boss && enemyTimer >= enemyInterval) {
+          spawnEnemy();
+          enemyTimer = 0;
+          enemyInterval = Math.max(18, 45 - Math.floor(score / 120));
+        }
+
+        for (let i = bullets.length - 1; i >= 0; i -= 1) {
+          const bullet = bullets[i];
+          bullet.y -= bullet.speed;
+          if (bullet.y + bullet.height < 0) {
+            bullets.splice(i, 1);
+          }
+        }
+
+        const playerBox = {
+          x: player.x - player.width / 2 + 10,
+          y: player.y - player.height / 2 + 8,
+          width: player.width - 20,
+          height: player.height - 16
+        };
+
+        for (let i = enemies.length - 1; i >= 0; i -= 1) {
+          const enemy = enemies[i];
+          enemy.y += enemy.speed;
+          enemy.shootCooldown -= 1;
+
+          if (enemy.y > HEIGHT) {
+            enemies.splice(i, 1);
+            continue;
+          }
+
+          if (enemy.shootCooldown <= 0) {
+            enemyBullets.push({
+              x: enemy.x + enemy.width / 2 - 2,
+              y: enemy.y + enemy.height,
+              width: 4,
+              height: 12,
+              speed: 5 + Math.random() * 1.8
+            });
+            enemy.shootCooldown = 45 + Math.floor(Math.random() * 65);
+          }
+
+          if (isColliding(playerBox, enemy)) {
+            spawnExplosion(player.x, player.y - 8, "#ffd27a");
+            enemies.splice(i, 1);
+            damage();
+            continue;
+          }
+
+          for (let j = bullets.length - 1; j >= 0; j -= 1) {
+            if (isColliding(bullets[j], enemy)) {
+              const hitX = enemy.x + enemy.width / 2;
+              const hitY = enemy.y + enemy.height / 2;
+              bullets.splice(j, 1);
+              enemies.splice(i, 1);
+              score += 10;
+              enemyKills += 1;
+              spawnExplosion(hitX, hitY, "#ff9db8");
+              if (score > best) {
+                best = score;
+                localStorage.setItem("space_best_score", String(best));
+              }
+              updateHud();
+              break;
+            }
+          }
+        }
+
+        if (boss) {
+          if (boss.y < 120) {
+            boss.y += 1.2;
+          } else {
+            boss.x += boss.vx;
+            if (boss.x < boss.width / 2 || boss.x > WIDTH - boss.width / 2) {
+              boss.vx *= -1;
+            }
+          }
+
+          boss.shootCooldown -= 1;
+          if (boss.shootCooldown <= 0) {
+            const lanes = [-26, -13, 0, 13, 26];
+            lanes.forEach((offset) => {
+              enemyBullets.push({
+                x: boss.x + offset - 3,
+                y: boss.y + boss.height / 2 - 8,
+                width: 6,
+                height: 16,
+                speed: 4.4
+              });
+            });
+            boss.shootCooldown = 32;
+          }
+
+          if (isColliding(playerBox, {
+            x: boss.x - boss.width / 2 + 20,
+            y: boss.y - boss.height / 2 + 16,
+            width: boss.width - 40,
+            height: boss.height - 20
+          })) {
+            spawnExplosion(player.x, player.y - 8, "#ffd27a");
+            damage();
+          }
+
+          for (let i = bullets.length - 1; i >= 0; i -= 1) {
+            const shot = bullets[i];
+            if (isColliding(shot, {
+              x: boss.x - boss.width / 2 + 8,
+              y: boss.y - boss.height / 2 + 8,
+              width: boss.width - 16,
+              height: boss.height - 16
+            })) {
+              bullets.splice(i, 1);
+              boss.hp -= 1;
+              spawnExplosion(shot.x, shot.y, "#cfa2ff");
+              if (boss.hp <= 0) {
+                spawnExplosion(boss.x, boss.y, "#f0d3ff");
+                spawnExplosion(boss.x - 40, boss.y + 10, "#d89cff");
+                spawnExplosion(boss.x + 42, boss.y - 8, "#d89cff");
+                score += 500;
+                updateHud();
+                boss = null;
+                bossDefeated = true;
+                enemyBullets = [];
+                break;
+              }
+            }
+          }
+        }
+
+        for (let i = enemyBullets.length - 1; i >= 0; i -= 1) {
+          const missile = enemyBullets[i];
+          missile.y += missile.speed;
+
+          if (missile.y > HEIGHT) {
+            enemyBullets.splice(i, 1);
+            continue;
+          }
+
+          if (isColliding(missile, playerBox)) {
+            spawnExplosion(missile.x + missile.width / 2, missile.y + missile.height / 2, "#ffd27a");
+            enemyBullets.splice(i, 1);
+            damage();
+          }
+        }
+
+        if (bossAlertTimer > 0) {
+          bossAlertTimer -= 1;
+        }
+      }
+
+      drawPlayer();
+      bullets.forEach(drawBullet);
+      enemies.forEach(drawEnemy);
+      enemyBullets.forEach(drawEnemyBullet);
+      drawBoss();
+      drawExplosions();
+      drawBossAlert();
+
+      if (gameOver) {
+        drawGameOver();
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "Space" || e.code === "ArrowUp" || e.code === "ArrowDown" || e.code === "ArrowLeft" || e.code === "ArrowRight") {
+        e.preventDefault();
+      }
+      keys[e.code] = true;
+      if (gameOver && e.code === "KeyR") {
+        resetGame();
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys[e.code] = false;
+    });
+
+    updateHud();
+    requestAnimationFrame(update);
+  </script>
+</body>
+</html>
