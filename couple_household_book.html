@@ -8,28 +8,31 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --bg: #e8ecf4;
-      --bg-mesh: radial-gradient(1200px 600px at 10% -10%, #dbeafe 0%, transparent 50%),
-        radial-gradient(900px 500px at 100% 0%, #e0e7ff 0%, transparent 45%),
-        linear-gradient(180deg, #eef1f8 0%, #e4e9f2 100%);
-      --card: rgba(255, 255, 255, 0.82);
-      --card-solid: #ffffff;
-      --text: #0f172a;
-      --muted: #64748b;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --danger: #dc2626;
-      --border: rgba(15, 23, 42, 0.08);
+      --bg: #faf5ff;
+      --bg-mesh:
+        radial-gradient(1100px 520px at 8% -8%, rgba(252, 231, 243, 0.95) 0%, transparent 52%),
+        radial-gradient(900px 480px at 96% 4%, rgba(237, 233, 254, 0.9) 0%, transparent 46%),
+        linear-gradient(168deg, #fef7ff 0%, #f0f9ff 42%, #fff7ed 100%);
+      --card: rgba(255, 254, 252, 0.92);
+      --card-solid: #fffefb;
+      --text: #1e1b4b;
+      --muted: #7c6a9e;
+      --primary: #a855f7;
+      --primary-hover: #9333ea;
+      --danger: #e11d48;
+      --border: rgba(124, 58, 237, 0.1);
       --success: #059669;
-      --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 12px 40px rgba(15, 23, 42, 0.08);
-      --radius-lg: 20px;
-      --radius-md: 14px;
-      --radius-sm: 10px;
+      --shadow: 0 4px 22px rgba(139, 92, 246, 0.1), 0 1px 3px rgba(15, 23, 42, 0.04);
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --grad-cta: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+      --grad-cta-shadow: 0 4px 18px rgba(236, 72, 153, 0.28);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", system-ui, sans-serif;
       background: var(--bg-mesh);
       background-color: var(--bg);
       background-attachment: fixed;
@@ -43,14 +46,22 @@
       padding: 20px 18px 32px;
     }
     h1, h2, h3 { margin: 0 0 10px; letter-spacing: -0.02em; }
-    h1 { font-size: 1.5rem; font-weight: 700; }
-    h2 { font-size: 1.15rem; font-weight: 650; }
-    h3 { font-size: 1.05rem; font-weight: 650; }
+    h1 {
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(120deg, #7c3aed 0%, #db2777 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    h2 { font-size: 1.15rem; font-weight: 800; color: #581c87; }
+    h3 { font-size: 1.05rem; font-weight: 800; color: #581c87; }
     .topbar {
-      background: var(--card);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 250, 252, 0.98) 100%);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
+      border: 1px solid rgba(168, 85, 247, 0.14);
       border-radius: var(--radius-lg);
       padding: 18px 20px;
       box-shadow: var(--shadow);
@@ -70,6 +81,11 @@
       min-width: 200px;
     }
     .topbar-head .title-block .muted { margin-top: 2px; font-size: 13px; }
+    .topbar-head .title-block .muted.tagline-desktop {
+      color: #9333ea;
+      font-weight: 600;
+      opacity: 0.92;
+    }
     .tabs {
       display: flex;
       gap: 6px;
@@ -78,14 +94,14 @@
     }
     .conn-box {
       width: 100%;
-      border: 1px dashed rgba(37, 99, 235, 0.25);
+      border: 1px dashed rgba(168, 85, 247, 0.35);
       border-radius: var(--radius-md);
       padding: 16px;
       display: grid;
       grid-template-columns: repeat(12, 1fr);
       gap: 12px;
       align-items: end;
-      background: linear-gradient(135deg, rgba(37, 99, 235, 0.04) 0%, rgba(255, 255, 255, 0.5) 100%);
+      background: linear-gradient(135deg, rgba(250, 245, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 100%);
     }
     .conn-status {
       font-size: 13px;
@@ -94,32 +110,36 @@
       line-height: 1.45;
     }
     .tab-btn {
-      border: 1px solid transparent;
-      background: rgba(255, 255, 255, 0.55);
-      color: var(--muted);
+      border: 1px solid rgba(168, 85, 247, 0.14);
+      background: rgba(255, 255, 255, 0.88);
+      color: #6b21a8;
       border-radius: 999px;
       padding: 9px 16px;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 650;
       font-size: 13px;
       transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
     }
     .tab-btn:hover {
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.95);
-      border-color: var(--border);
+      color: #581c87;
+      background: #fff;
+      border-color: rgba(168, 85, 247, 0.28);
     }
     .tab-btn.active {
-      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+      background: var(--grad-cta);
       color: #fff;
       border-color: transparent;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+      box-shadow: var(--grad-cta-shadow);
     }
     .right-tools {
       display: flex;
       gap: 10px;
       align-items: center;
       flex-wrap: wrap;
+    }
+    .right-tools label {
+      font-weight: 650;
+      color: #6b21a8;
     }
     .grid {
       display: grid;
@@ -138,10 +158,11 @@
     .col-6 { grid-column: span 6; }
     .col-4 { grid-column: span 4; }
     .stat {
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius-md);
       padding: 14px 16px;
-      background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+      background: linear-gradient(135deg, #faf5ff 0%, #fff 100%);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 2px 12px rgba(124, 58, 237, 0.06);
     }
     .stat .label { color: var(--muted); font-size: 13px; }
     .stat .value { margin-top: 6px; font-size: 22px; font-weight: 700; }
@@ -174,24 +195,26 @@
     }
     input:focus, select:focus {
       outline: none;
-      border-color: rgba(37, 99, 235, 0.45);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      border-color: rgba(168, 85, 247, 0.5);
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.14);
     }
     button {
       cursor: pointer;
       font-weight: 600;
     }
     button:not(.tab-btn):not(.btn-primary):not(.btn-danger) {
-      background: #f8fafc;
+      background: rgba(250, 245, 255, 0.95);
+      border-color: rgba(168, 85, 247, 0.12);
     }
     button:not(.tab-btn):not(.btn-primary):not(.btn-danger):hover {
-      background: #f1f5f9;
+      background: #fff;
+      border-color: rgba(168, 85, 247, 0.22);
     }
     .btn-primary {
-      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+      background: var(--grad-cta);
       color: #fff;
       border-color: transparent;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+      box-shadow: var(--grad-cta-shadow);
     }
     .btn-primary:hover {
       filter: brightness(1.05);
@@ -219,7 +242,7 @@
       letter-spacing: 0.04em;
       font-weight: 600;
     }
-    tbody tr:hover td { background: rgba(37, 99, 235, 0.03); }
+    tbody tr:hover td { background: rgba(168, 85, 247, 0.07); }
     .muted { color: var(--muted); }
     .hidden { display: none; }
     .pill {
@@ -237,15 +260,49 @@
       margin-bottom: 16px;
       line-height: 1.55;
     }
-    /* 거래 폼: 카테고리 셀렉트 터치·드롭다운이 옆 카드에 가리지 않도록 */
-    #tab-transactions .tx-form-card {
-      position: relative;
-      z-index: 3;
-      overflow: visible;
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
     }
-    #tab-transactions .tx-form-card .grid,
-    #tab-transactions .tx-form-card form {
-      overflow: visible;
+    .tx-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.38);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 9999;
+    }
+    .tx-modal-overlay.hidden {
+      display: none;
+    }
+    .tx-modal-panel {
+      width: min(760px, 96vw);
+      max-height: 90vh;
+      overflow: auto;
+      background: #fffefb;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 60px rgba(2, 6, 23, 0.25);
+      padding: 16px;
+    }
+    .tx-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .tx-modal-head h2 {
+      margin: 0;
+    }
+    .tx-modal-head button {
+      padding: 8px 10px;
+      min-width: auto;
     }
     select.category-select {
       min-height: 46px;
@@ -255,7 +312,7 @@
       width: 100%;
       -webkit-appearance: none;
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239333ea' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 12px center;
       cursor: pointer;
@@ -320,13 +377,19 @@
     .auth-card {
       width: 100%;
       max-width: 440px;
-      background: var(--card-solid);
-      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #fff 0%, #fff7fb 100%);
+      border: 1px solid rgba(236, 72, 153, 0.14);
       border-radius: var(--radius-lg);
       padding: 22px 22px 20px;
       box-shadow: var(--shadow);
     }
-    .auth-card h2 { margin-bottom: 6px; }
+    .auth-card h2 {
+      margin-bottom: 6px;
+      background: linear-gradient(120deg, #7c3aed 0%, #db2777 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
     .auth-card .lead {
       font-size: 14px;
       color: var(--muted);
@@ -345,9 +408,10 @@
       border-radius: var(--radius-sm);
     }
     .auth-mode-tabs button.active {
-      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+      background: var(--grad-cta);
       color: #fff;
       border-color: transparent;
+      box-shadow: var(--grad-cta-shadow);
     }
     .auth-panel { display: none; }
     .auth-panel.active { display: block; }
@@ -373,6 +437,289 @@
       .field.col-6, .field.col-4, .field.col-3 { grid-column: span 12; }
       .filter-month-row .field.col-3,
       .filter-month-row .filter-all-label { grid-column: span 12; }
+    }
+
+    .tagline-mobile { display: none; }
+    body.mobile-ui {
+      --mu-primary: #a855f7;
+      --mu-primary2: #ec4899;
+      --mu-card: #fffefb;
+      --mu-border: rgba(168, 85, 247, 0.12);
+      --mu-shadow: 0 8px 28px rgba(139, 92, 246, 0.12);
+      font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", system-ui, sans-serif;
+      background: linear-gradient(165deg, #fef7ff 0%, #f0f9ff 40%, #fff7ed 100%);
+      background-attachment: fixed;
+    }
+    body.mobile-ui .container {
+      padding: 12px 14px max(28px, env(safe-area-inset-bottom));
+      padding-left: max(14px, env(safe-area-inset-left));
+      padding-right: max(14px, env(safe-area-inset-right));
+    }
+    body.mobile-ui .tagline-desktop { display: none; }
+    body.mobile-ui .tagline-mobile {
+      display: block;
+      margin-top: 4px;
+      font-size: 14px;
+      color: #9333ea;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+    body.mobile-ui .topbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+      padding: 16px 14px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 250, 252, 0.98) 100%);
+      border-color: var(--mu-border);
+      box-shadow: var(--mu-shadow);
+    }
+    body.mobile-ui .topbar-head {
+      min-width: 0;
+    }
+    body.mobile-ui h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(120deg, #7c3aed 0%, #db2777 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    body.mobile-ui .right-tools {
+      width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+    body.mobile-ui .right-tools label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #6b21a8;
+    }
+    body.mobile-ui .right-tools select {
+      width: 100%;
+      min-height: 48px;
+      font-size: 16px;
+      border-radius: 14px;
+      border: 2px solid rgba(168, 85, 247, 0.2);
+      background: #fff;
+    }
+    body.mobile-ui .tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      gap: 8px;
+      padding: 4px 2px 10px;
+      margin: 0 -4px;
+      scrollbar-width: none;
+      mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+    }
+    body.mobile-ui .tabs::-webkit-scrollbar { display: none; }
+    body.mobile-ui .tab-btn {
+      flex: 0 0 auto;
+      padding: 12px 18px;
+      font-size: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(168, 85, 247, 0.15);
+      background: #fff;
+      color: #6b21a8;
+      touch-action: manipulation;
+    }
+    body.mobile-ui .tab-btn.active {
+      background: linear-gradient(135deg, var(--mu-primary2) 0%, var(--mu-primary) 100%);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 6px 18px rgba(236, 72, 153, 0.35);
+    }
+    body.mobile-ui .card {
+      border-radius: 20px;
+      padding: 16px 16px;
+      background: var(--mu-card);
+      border-color: var(--mu-border);
+      box-shadow: var(--mu-shadow);
+    }
+    body.mobile-ui h2, body.mobile-ui h3 {
+      font-weight: 800;
+      color: #581c87;
+    }
+    body.mobile-ui .dashboard-stats {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      gap: 10px !important;
+    }
+    body.mobile-ui .stat {
+      border-radius: 16px;
+      border: none;
+      background: linear-gradient(135deg, #faf5ff 0%, #fff 100%);
+      padding: 14px 16px;
+    }
+    body.mobile-ui .stat .value { font-size: 1.35rem; }
+    body.mobile-ui input,
+    body.mobile-ui select,
+    body.mobile-ui button {
+      border-radius: 14px;
+      touch-action: manipulation;
+    }
+    body.mobile-ui input,
+    body.mobile-ui select {
+      min-height: 48px;
+      font-size: 16px;
+      border-width: 2px;
+      border-color: rgba(168, 85, 247, 0.18);
+    }
+    body.mobile-ui .btn-primary {
+      background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+      box-shadow: 0 4px 16px rgba(168, 85, 247, 0.35);
+      min-height: 48px;
+      font-size: 16px;
+    }
+    body.mobile-ui .btn-danger {
+      border-radius: 14px;
+      min-height: 44px;
+    }
+    body.mobile-ui .tx-form-actions {
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    body.mobile-ui .tx-form-actions button {
+      min-width: 0;
+      min-height: 48px;
+    }
+    body.mobile-ui .tx-modal-overlay {
+      padding: 0;
+      align-items: stretch;
+      justify-content: stretch;
+      background: rgba(15, 23, 42, 0.55);
+    }
+    body.mobile-ui .tx-modal-panel {
+      width: 100vw;
+      max-height: 100vh;
+      border-radius: 0;
+      border: none;
+      padding: 14px;
+      box-shadow: none;
+    }
+    body.mobile-ui .filter-month-row {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    body.mobile-ui .filter-all-label {
+      padding: 10px 12px;
+      background: rgba(250, 245, 255, 0.9);
+      border-radius: 14px;
+      border: 2px solid rgba(168, 85, 247, 0.12);
+    }
+    body.mobile-ui .conn-box {
+      grid-template-columns: 1fr;
+      border-style: solid;
+      border-radius: 18px;
+      padding: 14px;
+    }
+    body.mobile-ui .conn-box .field,
+    body.mobile-ui .conn-box > .col-12 {
+      grid-column: 1 / -1;
+    }
+    body.mobile-ui .conn-box .field.col-2 {
+      grid-column: 1 / -1;
+    }
+    body.mobile-ui #logoutBtn {
+      width: 100%;
+      min-height: 48px;
+      font-size: 16px;
+    }
+    body.mobile-ui .actions {
+      flex-direction: column;
+      gap: 8px;
+    }
+    body.mobile-ui .actions button {
+      width: 100%;
+      min-height: 44px;
+    }
+    body.mobile-ui table.mob-stack-table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    body.mobile-ui table.mob-stack-table thead {
+      display: none;
+    }
+    body.mobile-ui table.mob-stack-table tbody tr {
+      display: block;
+      border: 2px solid rgba(168, 85, 247, 0.12);
+      border-radius: 18px;
+      margin-bottom: 12px;
+      padding: 12px 14px;
+      background: linear-gradient(160deg, #fff 0%, #fdf4ff 100%);
+      box-shadow: 0 4px 16px rgba(124, 58, 237, 0.06);
+    }
+    body.mobile-ui table.mob-stack-table tbody td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border: none;
+      padding: 10px 0;
+      font-size: 15px;
+      text-align: right;
+      word-break: break-word;
+    }
+    body.mobile-ui table.mob-stack-table tbody td[data-label]::before {
+      content: attr(data-label);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: #9333ea;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      text-align: left;
+    }
+    body.mobile-ui table.mob-stack-table tbody td.actions {
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      padding-top: 12px;
+      margin-top: 4px;
+      border-top: 1px dashed rgba(168, 85, 247, 0.2);
+    }
+    body.mobile-ui table.mob-stack-table tbody td.actions::before {
+      content: attr(data-label);
+      width: 100%;
+      margin-bottom: 4px;
+      text-align: left;
+    }
+    body.mobile-ui table.mob-stack-table tbody td.actions button {
+      flex: 1;
+      min-width: calc(50% - 4px);
+    }
+    body.mobile-ui table.mob-stack-table tbody td.actions button:only-child {
+      flex: none;
+      width: 100%;
+      min-width: 100%;
+    }
+    body.mobile-ui #catForm > button.btn-primary {
+      width: 100%;
+      margin-top: 10px;
+      min-height: 48px;
+    }
+    body.mobile-ui #connectBtn {
+      width: 100%;
+      min-height: 48px;
+    }
+    body.mobile-ui .auth-card {
+      border-radius: 24px;
+      border: 2px solid rgba(236, 72, 153, 0.15);
+      background: linear-gradient(180deg, #fff 0%, #fff7fb 100%);
+    }
+    body.mobile-ui .auth-card h2 {
+      background: linear-gradient(120deg, #7c3aed 0%, #db2777 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    body.mobile-ui .auth-mode-tabs button.active {
+      background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+    }
+    body.mobile-ui canvas {
+      max-height: 260px;
     }
   </style>
 </head>
@@ -446,7 +793,8 @@
       <div class="topbar-head">
         <div class="title-block">
           <h1>부부 공유 가계부</h1>
-          <div class="muted">모바일·PC에서 함께 쓰는 반응형 가계부</div>
+          <div class="muted tagline-desktop">모바일·PC에서 함께 쓰는 반응형 가계부</div>
+          <div class="muted tagline-mobile">같이 쓰는 가벼운 가계부</div>
         </div>
       </div>
       <div class="right-tools">
@@ -454,9 +802,10 @@
         <select id="activeUser"></select>
       </div>
       <div class="tabs" role="tablist">
-        <button type="button" class="tab-btn active" data-tab="dashboard" role="tab">대시보드</button>
-        <button type="button" class="tab-btn" data-tab="transactions" role="tab">거래내역</button>
+        <button type="button" class="tab-btn active" data-tab="dashboard" role="tab">메인</button>
+        <button type="button" class="tab-btn" data-tab="transactions" role="tab">월 요약</button>
         <button type="button" class="tab-btn" data-tab="categories" role="tab">카테고리</button>
+        <button type="button" class="tab-btn" data-tab="assets" role="tab">자산 종류</button>
         <button type="button" class="tab-btn" data-tab="reports" role="tab">월간 리포트</button>
         <button type="button" class="tab-btn" data-tab="settings" role="tab">접속 설정</button>
       </div>
@@ -465,93 +814,10 @@
     <section id="tab-dashboard" class="tab-panel">
       <div class="grid">
         <div class="col-12 card">
-          <h2>이번 달 요약</h2>
-          <div class="row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-            <div class="stat">
-              <div class="label">총 수입</div>
-              <div id="sumIncome" class="value income">0원</div>
-            </div>
-            <div class="stat">
-              <div class="label">총 지출</div>
-              <div id="sumExpense" class="value expense">0원</div>
-            </div>
-            <div class="stat">
-              <div class="label">잔액</div>
-              <div id="sumBalance" class="value">0원</div>
-            </div>
+          <div class="section-head">
+            <h2>거래내역</h2>
+            <button id="openTxModalBtn" class="btn-primary" type="button">거래 추가</button>
           </div>
-        </div>
-        <div class="col-12 card">
-          <h3>최근 거래 5건</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>날짜</th><th>유형</th><th>금액</th><th>카테고리</th><th>메모</th><th>작성자</th>
-              </tr>
-            </thead>
-            <tbody id="recentRows"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section id="tab-transactions" class="tab-panel hidden">
-      <div class="grid">
-        <div class="col-4 card tx-form-card">
-          <h2>거래 등록/수정</h2>
-          <form id="txForm">
-            <input type="hidden" id="txId">
-            <div class="row">
-              <div class="field col-6">
-                <label for="txDate">날짜</label>
-                <input id="txDate" type="date" required>
-              </div>
-              <div class="field col-6">
-                <label for="txType">유형</label>
-                <select id="txType" required>
-                  <option value="expense">지출</option>
-                  <option value="income">수입</option>
-                </select>
-              </div>
-            </div>
-            <div class="row">
-              <div class="field col-6">
-                <label for="txAmount">금액</label>
-                <input id="txAmount" type="number" min="0" required>
-              </div>
-              <div class="field col-6">
-                <label for="txOwner">작성자</label>
-                <select id="txOwner"></select>
-              </div>
-            </div>
-            <div class="row category-select-row">
-              <div class="field col-4">
-                <label for="catL1">대분류</label>
-                <select id="catL1" class="category-select" required></select>
-              </div>
-              <div class="field col-4">
-                <label for="catL2">중분류</label>
-                <select id="catL2" class="category-select" required></select>
-              </div>
-              <div class="field col-4">
-                <label for="catL3">소분류</label>
-                <select id="catL3" class="category-select" required></select>
-              </div>
-            </div>
-            <div class="row">
-              <div class="field">
-                <label for="txMemo">메모</label>
-                <input id="txMemo" type="text" maxlength="100">
-              </div>
-            </div>
-            <div class="row tx-form-actions">
-              <button class="btn-primary" type="submit">저장</button>
-              <button id="resetTxBtn" type="button">초기화</button>
-            </div>
-          </form>
-        </div>
-        <div class="col-8 card">
-          <h2>거래내역</h2>
           <div class="filter-month-row">
             <div class="field col-3">
               <label for="filterMonth">월 선택</label>
@@ -575,14 +841,53 @@
                 <option value="">전체</option>
               </select>
             </div>
+            <div class="field col-3">
+              <label for="filterAssetType">자산 종류 필터</label>
+              <select id="filterAssetType">
+                <option value="">전체</option>
+              </select>
+            </div>
           </div>
-          <table>
+          <table class="mob-stack-table">
             <thead>
               <tr>
-                <th>날짜</th><th>유형</th><th>금액</th><th>카테고리</th><th>메모</th><th>작성자</th><th>작업</th>
+                <th>날짜</th><th>유형</th><th>금액</th><th>자산 종류</th><th>카테고리</th><th>메모</th><th>작성자</th><th>작업</th>
               </tr>
             </thead>
             <tbody id="txRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-transactions" class="tab-panel hidden">
+      <div class="grid">
+        <div class="col-12 card">
+          <h2>이번 달 요약</h2>
+          <div class="row dashboard-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <div class="stat">
+              <div class="label">총 수입</div>
+              <div id="sumIncome" class="value income">0원</div>
+            </div>
+            <div class="stat">
+              <div class="label">총 지출</div>
+              <div id="sumExpense" class="value expense">0원</div>
+            </div>
+            <div class="stat">
+              <div class="label">잔액</div>
+              <div id="sumBalance" class="value">0원</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 card">
+          <h3>최근 거래 5건</h3>
+          <table class="mob-stack-table">
+            <thead>
+              <tr>
+                <th>날짜</th><th>유형</th><th>금액</th><th>자산 종류</th><th>카테고리</th><th>메모</th><th>작성자</th>
+              </tr>
+            </thead>
+            <tbody id="recentRows"></tbody>
           </table>
         </div>
       </div>
@@ -612,11 +917,37 @@
         </div>
         <div class="col-6 card">
           <h2>카테고리 목록</h2>
-          <table>
+          <table class="mob-stack-table">
             <thead>
               <tr><th>대분류</th><th>중분류</th><th>소분류</th><th>작업</th></tr>
             </thead>
             <tbody id="catRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-assets" class="tab-panel hidden">
+      <div class="grid">
+        <div class="col-6 card">
+          <h2>자산 종류 추가</h2>
+          <form id="assetForm">
+            <div class="row">
+              <div class="field col-12">
+                <label for="newAssetType">자산 종류 이름</label>
+                <input id="newAssetType" placeholder="예: 현금" required>
+              </div>
+            </div>
+            <button class="btn-primary" type="submit">자산 종류 추가</button>
+          </form>
+        </div>
+        <div class="col-6 card">
+          <h2>자산 종류 목록</h2>
+          <table class="mob-stack-table">
+            <thead>
+              <tr><th>자산 종류</th><th>작업</th></tr>
+            </thead>
+            <tbody id="assetRows"></tbody>
           </table>
         </div>
       </div>
@@ -651,6 +982,10 @@
         <div class="col-12 card">
           <h3>소분류 월별 추이(최근 6개월)</h3>
           <canvas id="chartL3Trend"></canvas>
+        </div>
+        <div class="col-12 card">
+          <h3>자산 종류별 합계</h3>
+          <canvas id="chartAssetType"></canvas>
         </div>
       </div>
     </section>
@@ -688,6 +1023,71 @@
   </div>
   </div>
 
+  <div id="txModal" class="tx-modal-overlay hidden" aria-hidden="true">
+    <div class="tx-modal-panel">
+      <div class="tx-modal-head">
+        <h2 id="txModalTitle">거래 추가</h2>
+        <button id="closeTxModalX" type="button">닫기</button>
+      </div>
+      <form id="txForm">
+        <input type="hidden" id="txId">
+        <div class="row">
+          <div class="field col-6">
+            <label for="txDate">날짜</label>
+            <input id="txDate" type="date" required>
+          </div>
+          <div class="field col-6">
+            <label for="txType">유형</label>
+            <select id="txType" required>
+              <option value="expense">지출</option>
+              <option value="income">수입</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field col-6">
+            <label for="txAmount">금액</label>
+            <input id="txAmount" type="number" min="0" required>
+          </div>
+          <div class="field col-6">
+            <label for="txAssetType">자산 종류</label>
+            <select id="txAssetType" required></select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field col-6">
+            <label for="txOwner">작성자</label>
+            <select id="txOwner"></select>
+          </div>
+        </div>
+        <div class="row category-select-row">
+          <div class="field col-4">
+            <label for="catL1">대분류</label>
+            <select id="catL1" class="category-select" required></select>
+          </div>
+          <div class="field col-4">
+            <label for="catL2">중분류</label>
+            <select id="catL2" class="category-select" required></select>
+          </div>
+          <div class="field col-4">
+            <label for="catL3">소분류</label>
+            <select id="catL3" class="category-select" required></select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="txMemo">메모</label>
+            <input id="txMemo" type="text" maxlength="100">
+          </div>
+        </div>
+        <div class="row tx-form-actions">
+          <button class="btn-primary" type="submit">저장</button>
+          <button id="closeTxModalBtn" type="button">취소</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     /** Vercel 배포 시 여기에 프로젝트 값을 넣으면 가입·로그인 화면에서 URL·Anon Key 입력란이 숨겨집니다. */
     const DEFAULT_SUPABASE_URL = "";
@@ -707,10 +1107,12 @@
       { l1: "수입", l2: "근로소득", l3: "월급" }
     ];
     const defaultUsers = ["배우자1", "배우자2"];
+    const defaultAssetTypes = ["현금", "토스뱅크", "하나은행", "파주페이"];
 
     const state = {
       users: [...defaultUsers],
       categories: [],
+      assetTypes: [],
       transactions: []
     };
 
@@ -718,7 +1120,7 @@
     let channel = null;
     let householdCode = "";
     let refreshing = false;
-    let charts = { l1: null, l2: null, l3: null };
+    let charts = { l1: null, l2: null, l3: null, asset: null };
     let lastClientUrl = "";
     let lastClientKey = "";
 
@@ -1011,6 +1413,7 @@
       lastClientKey = "";
       state.users = [...defaultUsers];
       state.categories = [];
+      state.assetTypes = [];
       state.transactions = [];
       const line = document.getElementById("settingsAccountLine");
       if (line) line.textContent = "";
@@ -1082,6 +1485,70 @@
       txOwner.value = activeUser.value || state.users[0];
     }
 
+    function refreshAssetTypeSelectors() {
+      const txAssetType = document.getElementById("txAssetType");
+      const filterAssetType = document.getElementById("filterAssetType");
+      const values = [...state.assetTypes].sort((a, b) => a.localeCompare(b));
+      setOptions(txAssetType, values);
+      filterAssetType.innerHTML = '<option value="">전체</option>';
+      values.forEach((name) => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        filterAssetType.appendChild(opt);
+      });
+      if (values.length && !txAssetType.value) txAssetType.value = values[0];
+    }
+
+    function renderAssetRows() {
+      const tbody = document.getElementById("assetRows");
+      tbody.innerHTML = "";
+      [...state.assetTypes]
+        .sort((a, b) => a.localeCompare(b))
+        .forEach((name) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td data-label="자산 종류">${name}</td>
+            <td class="actions" data-label="작업">
+              <button data-edit-asset="${name}">수정</button>
+              <button data-del-asset="${name}" class="btn-danger">삭제</button>
+            </td>`;
+          tbody.appendChild(tr);
+        });
+
+      tbody.querySelectorAll("[data-edit-asset]").forEach((btn) => {
+        btn.onclick = () => {
+          const oldName = btn.getAttribute("data-edit-asset");
+          const newName = prompt("자산 종류 이름을 수정하세요.", oldName || "");
+          if (newName == null) return;
+          const next = newName.trim();
+          if (!next) {
+            alert("자산 종류 이름을 입력해 주세요.");
+            return;
+          }
+          if (next === oldName) return;
+          const exists = state.assetTypes.some((a) => a === next);
+          if (exists) {
+            alert("이미 존재하는 자산 종류입니다.");
+            return;
+          }
+          updateAssetTypeRemote(oldName, next);
+        };
+      });
+
+      tbody.querySelectorAll("[data-del-asset]").forEach((btn) => {
+        btn.onclick = () => {
+          const name = btn.getAttribute("data-del-asset");
+          const linked = state.transactions.some((t) => t.assetType === name);
+          if (linked) {
+            alert("이 자산 종류는 거래내역에서 사용 중이라 삭제할 수 없습니다.");
+            return;
+          }
+          deleteAssetTypeRemote(name);
+        };
+      });
+    }
+
     function buildCategoryHierarchy() {
       const l1Map = new Map();
       state.categories.forEach((c) => {
@@ -1135,10 +1602,10 @@
         .forEach((c) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td>${c.l1}</td>
-            <td>${c.l2}</td>
-            <td>${c.l3}</td>
-            <td>
+            <td data-label="대분류">${c.l1}</td>
+            <td data-label="중분류">${c.l2}</td>
+            <td data-label="소분류">${c.l3}</td>
+            <td class="actions" data-label="관리">
               <button data-del-cat="${c.id}" class="btn-danger">삭제</button>
             </td>`;
           tbody.appendChild(tr);
@@ -1162,10 +1629,12 @@
       const m = document.getElementById("filterMonth").value || ymNow;
       const type = document.getElementById("filterType").value;
       const owner = document.getElementById("filterOwner").value.trim();
+      const assetType = document.getElementById("filterAssetType").value.trim();
       return state.transactions
         .filter((t) => allMonths || monthKeyFromDate(t.date) === m)
         .filter((t) => !type || t.type === type)
         .filter((t) => !owner || (t.owner || "").trim() === owner)
+        .filter((t) => !assetType || (t.assetType || "").trim() === assetType)
         .sort((a, b) => normalizeTransactionDate(b.date).localeCompare(normalizeTransactionDate(a.date)));
     }
 
@@ -1176,20 +1645,21 @@
       rows.forEach((t) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${normalizeTransactionDate(t.date)}</td>
-          <td><span class="pill ${t.type}">${t.type === "income" ? "수입" : "지출"}</span></td>
-          <td>${formatCurrency(t.amount)}</td>
-          <td>${t.l1} > ${t.l2} > ${t.l3}</td>
-          <td>${t.memo || ""}</td>
-          <td>${t.owner}</td>
-          <td class="actions">
+          <td data-label="날짜">${normalizeTransactionDate(t.date)}</td>
+          <td data-label="유형"><span class="pill ${t.type}">${t.type === "income" ? "수입" : "지출"}</span></td>
+          <td data-label="금액">${formatCurrency(t.amount)}</td>
+          <td data-label="자산 종류">${t.assetType || "—"}</td>
+          <td data-label="카테고리">${t.l1} &gt; ${t.l2} &gt; ${t.l3}</td>
+          <td data-label="메모">${t.memo || "—"}</td>
+          <td data-label="작성자">${t.owner}</td>
+          <td class="actions" data-label="작업">
             <button data-edit="${t.id}">수정</button>
             <button data-del="${t.id}" class="btn-danger">삭제</button>
           </td>`;
         tbody.appendChild(tr);
       });
       tbody.querySelectorAll("[data-edit]").forEach((btn) => {
-        btn.onclick = () => fillTransactionForm(btn.getAttribute("data-edit"));
+        btn.onclick = () => openTransactionModalForEdit(btn.getAttribute("data-edit"));
       });
       tbody.querySelectorAll("[data-del]").forEach((btn) => {
         btn.onclick = () => {
@@ -1206,6 +1676,7 @@
       document.getElementById("txDate").value = normalizeTransactionDate(t.date);
       document.getElementById("txType").value = t.type;
       document.getElementById("txAmount").value = t.amount;
+      document.getElementById("txAssetType").value = t.assetType || "";
       document.getElementById("txOwner").value = t.owner;
       document.getElementById("txMemo").value = t.memo || "";
       document.getElementById("catL1").value = t.l1;
@@ -1222,7 +1693,24 @@
       document.getElementById("filterMonth").value = ymNow;
       document.getElementById("reportMonth").value = ymNow;
       refreshCategorySelectors();
+      refreshAssetTypeSelectors();
       document.getElementById("txOwner").value = document.getElementById("activeUser").value || state.users[0];
+    }
+    function openTransactionModalForCreate() {
+      resetTransactionForm();
+      document.getElementById("txModalTitle").textContent = "거래 추가";
+      document.getElementById("txModal").classList.remove("hidden");
+      document.getElementById("txModal").setAttribute("aria-hidden", "false");
+    }
+    function openTransactionModalForEdit(id) {
+      fillTransactionForm(id);
+      document.getElementById("txModalTitle").textContent = "거래 수정";
+      document.getElementById("txModal").classList.remove("hidden");
+      document.getElementById("txModal").setAttribute("aria-hidden", "false");
+    }
+    function closeTransactionModal() {
+      document.getElementById("txModal").classList.add("hidden");
+      document.getElementById("txModal").setAttribute("aria-hidden", "true");
     }
 
     function renderDashboard() {
@@ -1242,12 +1730,13 @@
       recent.forEach((t) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${normalizeTransactionDate(t.date)}</td>
-          <td>${t.type === "income" ? "수입" : "지출"}</td>
-          <td>${formatCurrency(t.amount)}</td>
-          <td>${t.l1} > ${t.l2} > ${t.l3}</td>
-          <td>${t.memo || ""}</td>
-          <td>${t.owner}</td>`;
+          <td data-label="날짜">${normalizeTransactionDate(t.date)}</td>
+          <td data-label="유형">${t.type === "income" ? "수입" : "지출"}</td>
+          <td data-label="금액">${formatCurrency(t.amount)}</td>
+          <td data-label="자산 종류">${t.assetType || "—"}</td>
+          <td data-label="카테고리">${t.l1} &gt; ${t.l2} &gt; ${t.l3}</td>
+          <td data-label="메모">${t.memo || "—"}</td>
+          <td data-label="작성자">${t.owner}</td>`;
         tbody.appendChild(tr);
       });
     }
@@ -1266,6 +1755,7 @@
 
       const byL1 = aggregateBy(rows, "l1");
       const byL2 = aggregateBy(rows, "l2");
+      const byAsset = aggregateBy(rows, "assetType");
 
       const labelsL1 = Object.keys(byL1);
       const valuesL1 = Object.values(byL1);
@@ -1296,6 +1786,7 @@
       if (charts.l1) charts.l1.destroy();
       if (charts.l2) charts.l2.destroy();
       if (charts.l3) charts.l3.destroy();
+      if (charts.asset) charts.asset.destroy();
 
       charts.l1 = new Chart(document.getElementById("chartL1"), {
         type: "doughnut",
@@ -1311,7 +1802,7 @@
           datasets: [{
             label: "금액",
             data: l2Pairs.length ? l2Pairs.map((x) => x[1]) : [0],
-            backgroundColor: "#2563eb"
+            backgroundColor: "#c084fc"
           }]
         },
         options: { plugins: { legend: { display: false } } }
@@ -1324,14 +1815,46 @@
         },
         options: { tension: 0.25 }
       });
+      const assetPairs = Object.entries(byAsset).sort((a, b) => b[1] - a[1]);
+      charts.asset = new Chart(document.getElementById("chartAssetType"), {
+        type: "bar",
+        data: {
+          labels: assetPairs.length ? assetPairs.map((x) => x[0] || "미지정") : ["데이터 없음"],
+          datasets: [{
+            label: "금액",
+            data: assetPairs.length ? assetPairs.map((x) => x[1]) : [0],
+            backgroundColor: "#f472b6"
+          }]
+        },
+        options: { plugins: { legend: { display: false } } }
+      });
     }
 
     function refreshAll() {
       refreshCategorySelectors();
+      refreshAssetTypeSelectors();
       renderCategoryRows();
+      renderAssetRows();
       renderTransactions();
       renderDashboard();
       buildReports();
+    }
+
+    const mobileUiMq = window.matchMedia("(max-width: 768px)");
+    function syncMobileUiClass() {
+      document.body.classList.toggle("mobile-ui", mobileUiMq.matches);
+      clearTimeout(syncMobileUiClass._t);
+      syncMobileUiClass._t = setTimeout(() => {
+        window.dispatchEvent(new Event("resize"));
+      }, 150);
+    }
+    function initViewportUiMode() {
+      syncMobileUiClass();
+      if (typeof mobileUiMq.addEventListener === "function") {
+        mobileUiMq.addEventListener("change", syncMobileUiClass);
+      } else if (typeof mobileUiMq.addListener === "function") {
+        mobileUiMq.addListener(syncMobileUiClass);
+      }
     }
 
     function initEvents() {
@@ -1343,14 +1866,26 @@
           document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
           document.getElementById(`tab-${name}`).classList.remove("hidden");
           if (name === "reports") buildReports();
+          if (document.body.classList.contains("mobile-ui")) {
+            btn.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+          }
         };
       });
 
       document.getElementById("activeUser").onchange = (e) => {
         document.getElementById("txOwner").value = e.target.value;
       };
+      document.getElementById("openTxModalBtn").onclick = openTransactionModalForCreate;
+      document.getElementById("closeTxModalBtn").onclick = closeTransactionModal;
+      document.getElementById("closeTxModalX").onclick = closeTransactionModal;
+      document.getElementById("txModal").onclick = (e) => {
+        if (e.target.id === "txModal") closeTransactionModal();
+      };
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeTransactionModal();
+      });
 
-      ["filterMonth", "filterType", "filterOwner"].forEach((id) => {
+      ["filterMonth", "filterType", "filterOwner", "filterAssetType"].forEach((id) => {
         document.getElementById(id).onchange = renderTransactions;
       });
       document.getElementById("filterAllMonths").onchange = () => {
@@ -1378,17 +1913,16 @@
           date: document.getElementById("txDate").value,
           type: document.getElementById("txType").value,
           amount: Number(document.getElementById("txAmount").value),
+          assetType: document.getElementById("txAssetType").value,
           owner: document.getElementById("txOwner").value,
           memo: document.getElementById("txMemo").value.trim(),
           categoryId: category?.id || null,
           l1, l2, l3,
           household_code: householdCode
         };
-        if (!payload.date || !payload.amount || !payload.owner || !payload.l1 || !payload.l2 || !payload.l3) return;
+        if (!payload.date || !payload.amount || !payload.owner || !payload.assetType || !payload.l1 || !payload.l2 || !payload.l3) return;
         upsertTransactionRemote(payload);
       };
-
-      document.getElementById("resetTxBtn").onclick = resetTransactionForm;
 
       document.getElementById("catForm").onsubmit = (e) => {
         e.preventDefault();
@@ -1406,6 +1940,22 @@
           return;
         }
         addCategoryRemote({ l1, l2, l3, household_code: householdCode });
+      };
+
+      document.getElementById("assetForm").onsubmit = (e) => {
+        e.preventDefault();
+        if (!supabaseClient || !householdCode) {
+          alert("로그인한 뒤 자동으로 연결됩니다. 세션이 끊겼다면 다시 로그인해 주세요.");
+          return;
+        }
+        const name = document.getElementById("newAssetType").value.trim();
+        if (!name) return;
+        const exists = state.assetTypes.some((a) => a === name);
+        if (exists) {
+          alert("이미 존재하는 자산 종류입니다.");
+          return;
+        }
+        addAssetTypeRemote({ name, household_code: householdCode });
       };
 
       document.getElementById("connectBtn").onclick = connectSupabase;
@@ -1464,6 +2014,11 @@
           { event: "*", schema: "public", table: "categories", filter: `household_code=eq.${householdCode}` },
           () => reloadFromSupabase()
         )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "asset_types", filter: `household_code=eq.${householdCode}` },
+          () => reloadFromSupabase()
+        )
         .subscribe();
     }
 
@@ -1491,15 +2046,28 @@
         const { error } = await supabaseClient.from("categories").insert(seedCategories);
         if (error) throw error;
       }
+
+      const { data: assetData, error: assetError } = await supabaseClient
+        .from("asset_types")
+        .select("name")
+        .eq("household_code", householdCode)
+        .limit(1);
+      if (assetError) throw assetError;
+      if (!assetData.length) {
+        const seedAssets = defaultAssetTypes.map((name) => ({ household_code: householdCode, name }));
+        const { error } = await supabaseClient.from("asset_types").insert(seedAssets);
+        if (error) throw error;
+      }
     }
 
     async function reloadFromSupabase() {
       if (!supabaseClient || !householdCode || refreshing) return;
       refreshing = true;
       try {
-        const [usersRes, catRes, txRes] = await Promise.all([
+        const [usersRes, catRes, assetRes, txRes] = await Promise.all([
           supabaseClient.from("household_users").select("*").eq("household_code", householdCode).order("created_at", { ascending: true }),
           supabaseClient.from("categories").select("*").eq("household_code", householdCode).order("l1", { ascending: true }).order("l2", { ascending: true }).order("l3", { ascending: true }),
+          supabaseClient.from("asset_types").select("*").eq("household_code", householdCode).order("name", { ascending: true }),
           supabaseClient
             .from("transactions")
             .select("*")
@@ -1509,17 +2077,20 @@
         ]);
         if (usersRes.error) throw usersRes.error;
         if (catRes.error) throw catRes.error;
+        if (assetRes.error) throw assetRes.error;
         if (txRes.error) throw txRes.error;
 
         state.users = usersRes.data.map((u) => (u.name || "").trim());
         state.categories = catRes.data.map((c) => ({
           id: c.id, l1: c.l1, l2: c.l2, l3: c.l3, household_code: c.household_code
         }));
+        state.assetTypes = assetRes.data.map((a) => (a.name || "").trim()).filter(Boolean);
         state.transactions = txRes.data.map((t) => ({
           id: t.id,
           date: normalizeTransactionDate(t.date),
           type: t.type,
           amount: t.amount,
+          assetType: (t.asset_type || "").trim(),
           owner: (t.owner || "").trim(),
           memo: (t.memo || "").trim(),
           categoryId: t.category_id,
@@ -1566,6 +2137,7 @@
         date: payload.date,
         type: payload.type,
         amount: payload.amount,
+        asset_type: payload.assetType,
         owner: payload.owner,
         memo: payload.memo,
         category_id: payload.categoryId,
@@ -1580,6 +2152,56 @@
         return;
       }
       resetTransactionForm();
+      closeTransactionModal();
+      await reloadFromSupabase();
+    }
+
+    async function addAssetTypeRemote(payload) {
+      const { error } = await supabaseClient.from("asset_types").insert(payload);
+      if (error) {
+        alert("자산 종류 저장에 실패했습니다.");
+        console.error(error);
+        return;
+      }
+      document.getElementById("assetForm").reset();
+      await reloadFromSupabase();
+    }
+
+    async function updateAssetTypeRemote(oldName, newName) {
+      const { error } = await supabaseClient
+        .from("asset_types")
+        .update({ name: newName })
+        .eq("household_code", householdCode)
+        .eq("name", oldName);
+      if (error) {
+        alert("자산 종류 수정에 실패했습니다.");
+        console.error(error);
+        return;
+      }
+      const { error: txError } = await supabaseClient
+        .from("transactions")
+        .update({ asset_type: newName })
+        .eq("household_code", householdCode)
+        .eq("asset_type", oldName);
+      if (txError) {
+        alert("거래내역의 자산 종류 동기화에 실패했습니다.");
+        console.error(txError);
+        return;
+      }
+      await reloadFromSupabase();
+    }
+
+    async function deleteAssetTypeRemote(name) {
+      const { error } = await supabaseClient
+        .from("asset_types")
+        .delete()
+        .eq("household_code", householdCode)
+        .eq("name", name);
+      if (error) {
+        alert("자산 종류 삭제에 실패했습니다.");
+        console.error(error);
+        return;
+      }
       await reloadFromSupabase();
     }
 
@@ -1598,6 +2220,8 @@
     }
 
     async function boot() {
+      initViewportUiMode();
+      closeTransactionModal();
       document.getElementById("txDate").valueAsDate = new Date();
       document.getElementById("filterMonth").value = ymNow;
       document.getElementById("reportMonth").value = ymNow;
