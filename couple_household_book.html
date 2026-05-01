@@ -776,14 +776,14 @@
       width: 100%;
       min-width: 100%;
     }
-    body.mobile-ui .tx-single-line {
+    body.mobile-ui table.tx-single-line {
       min-width: 900px;
       table-layout: auto;
     }
-    body.mobile-ui .tx-single-line thead {
+    body.mobile-ui table.tx-single-line thead {
       display: table-header-group;
     }
-    body.mobile-ui .tx-single-line tbody tr {
+    body.mobile-ui table.tx-single-line tbody tr {
       display: table-row;
       border: none;
       border-radius: 0;
@@ -792,22 +792,27 @@
       background: transparent;
       box-shadow: none;
     }
-    body.mobile-ui .tx-single-line tbody td {
+    body.mobile-ui table.tx-single-line tbody td {
       display: table-cell;
       border-bottom: 1px solid var(--border);
       padding: 10px 8px;
       font-size: 14px;
       text-align: left;
+      white-space: nowrap;
     }
-    body.mobile-ui .tx-single-line tbody td[data-label]::before {
+    body.mobile-ui table.tx-single-line tbody td[data-label]::before {
       content: none;
     }
-    body.mobile-ui .tx-single-line tbody td.actions {
+    body.mobile-ui table.tx-single-line tbody td.actions {
       margin: 0;
       border-top: none;
       padding-top: 10px;
+      display: table-cell;
     }
-    body.mobile-ui .tx-single-line tbody td.actions button {
+    body.mobile-ui table.tx-single-line tbody td.actions::before {
+      content: none;
+    }
+    body.mobile-ui table.tx-single-line tbody td.actions button {
       width: auto;
       min-width: 58px;
       flex: none;
