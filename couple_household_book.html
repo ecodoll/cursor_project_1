@@ -685,6 +685,51 @@
       grid-template-columns: 1fr;
       gap: 10px;
     }
+    body.mobile-ui #tab-dashboard .filter-month-row {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: flex-end;
+      gap: 6px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+      margin-bottom: 10px;
+    }
+    body.mobile-ui #tab-dashboard .filter-month-row .field.col-3,
+    body.mobile-ui #tab-dashboard .filter-month-row .filter-all-label {
+      grid-column: auto;
+      flex: 0 0 auto;
+      width: auto;
+      padding-bottom: 0;
+    }
+    body.mobile-ui #tab-dashboard .filter-month-row .field.col-3 input,
+    body.mobile-ui #tab-dashboard .filter-month-row .field.col-3 select {
+      min-height: 36px;
+      height: 36px;
+      font-size: 12px;
+      padding: 6px 8px;
+    }
+    body.mobile-ui #tab-dashboard .filter-month-row #filterMonth { width: 124px; }
+    body.mobile-ui #tab-dashboard .filter-month-row #filterType { width: 84px; }
+    body.mobile-ui #tab-dashboard .filter-month-row #filterOwner { width: 94px; }
+    body.mobile-ui #tab-dashboard .filter-month-row #filterAssetType { width: 102px; }
+    body.mobile-ui #tab-dashboard .filter-month-row .field label {
+      font-size: 10px;
+      margin-bottom: 2px;
+    }
+    body.mobile-ui #tab-dashboard .filter-month-row .filter-all-label {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+      font-size: 11px;
+      padding: 0 8px;
+    }
+    body.mobile-ui #tab-dashboard .filter-month-row .filter-all-label input {
+      width: 16px;
+      height: 16px;
+    }
     body.mobile-ui .filter-all-label {
       padding: 10px 12px;
       background: rgba(250, 245, 255, 0.9);
@@ -953,7 +998,7 @@
             <h2>거래내역</h2>
             <button id="openTxModalBtn" class="btn-primary" type="button">거래 추가</button>
           </div>
-          <div class="filter-month-row">
+          <div class="filter-month-row tx-filter-row">
             <div class="field col-3">
               <label for="filterMonth">월 선택</label>
               <input id="filterMonth" type="month">
@@ -984,7 +1029,7 @@
             </div>
           </div>
           <div class="tx-table-wrap">
-            <table class="mob-stack-table tx-single-line">
+            <table class="tx-single-line">
               <thead>
                 <tr>
                   <th>날짜</th><th>유형</th><th>금액</th><th>자산 종류</th><th>카테고리</th><th>메모</th><th>작성자</th><th>작업</th>
