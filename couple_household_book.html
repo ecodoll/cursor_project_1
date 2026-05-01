@@ -360,6 +360,87 @@
       padding: 11px 14px;
     }
     .actions { display: flex; gap: 4px; flex-wrap: wrap; }
+    .tx-table-wrap {
+      width: 100%;
+      max-height: 430px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: #fff;
+    }
+    .tx-single-line {
+      min-width: 980px;
+    }
+    .tx-single-line th,
+    .tx-single-line td {
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .asset-summary-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .asset-summary-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: linear-gradient(180deg, #fff 0%, #faf5ff 100%);
+      overflow: hidden;
+    }
+    .asset-summary-item > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 1.3fr repeat(3, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      font-weight: 600;
+    }
+    .asset-summary-item > summary::-webkit-details-marker { display: none; }
+    .asset-summary-item .sum-name { font-weight: 800; color: #581c87; }
+    .asset-summary-item .sum-income { color: var(--success); }
+    .asset-summary-item .sum-expense { color: var(--danger); }
+    .asset-summary-item .sum-balance { color: var(--text); }
+    .asset-summary-item .sum-arrow { color: var(--muted); text-align: right; }
+    .asset-summary-item[open] .sum-arrow { transform: rotate(180deg); }
+    .asset-summary-tx {
+      border-top: 1px dashed var(--border);
+      background: rgba(255, 255, 255, 0.88);
+      padding: 8px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .asset-summary-tx-row {
+      display: grid;
+      grid-template-columns: 96px 52px 108px 1fr 80px;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--text);
+      border-bottom: 1px solid rgba(124, 58, 237, 0.08);
+      padding: 6px 0;
+    }
+    .asset-summary-tx-row:last-child { border-bottom: none; }
+    .asset-summary-empty {
+      color: var(--muted);
+      font-size: 13px;
+      padding: 8px 2px;
+    }
+    .asset-default-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .asset-default-check input {
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+    }
     canvas { width: 100%; max-height: 320px; }
     .auth-overlay {
       position: fixed;
@@ -695,6 +776,55 @@
       width: 100%;
       min-width: 100%;
     }
+    body.mobile-ui .tx-single-line {
+      min-width: 900px;
+      table-layout: auto;
+    }
+    body.mobile-ui .tx-single-line thead {
+      display: table-header-group;
+    }
+    body.mobile-ui .tx-single-line tbody tr {
+      display: table-row;
+      border: none;
+      border-radius: 0;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    body.mobile-ui .tx-single-line tbody td {
+      display: table-cell;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 8px;
+      font-size: 14px;
+      text-align: left;
+    }
+    body.mobile-ui .tx-single-line tbody td[data-label]::before {
+      content: none;
+    }
+    body.mobile-ui .tx-single-line tbody td.actions {
+      margin: 0;
+      border-top: none;
+      padding-top: 10px;
+    }
+    body.mobile-ui .tx-single-line tbody td.actions button {
+      width: auto;
+      min-width: 58px;
+      flex: none;
+    }
+    body.mobile-ui .asset-summary-item > summary {
+      grid-template-columns: 1fr;
+      gap: 4px;
+      align-items: start;
+    }
+    body.mobile-ui .asset-summary-item .sum-arrow {
+      justify-self: end;
+      margin-top: -18px;
+    }
+    body.mobile-ui .asset-summary-tx-row {
+      grid-template-columns: 1fr 52px;
+      gap: 6px;
+    }
     body.mobile-ui #catForm > button.btn-primary {
       width: 100%;
       margin-top: 10px;
@@ -848,14 +978,21 @@
               </select>
             </div>
           </div>
-          <table class="mob-stack-table">
-            <thead>
-              <tr>
-                <th>날짜</th><th>유형</th><th>금액</th><th>자산 종류</th><th>카테고리</th><th>메모</th><th>작성자</th><th>작업</th>
-              </tr>
-            </thead>
-            <tbody id="txRows"></tbody>
-          </table>
+          <div class="tx-table-wrap">
+            <table class="mob-stack-table tx-single-line">
+              <thead>
+                <tr>
+                  <th>날짜</th><th>유형</th><th>금액</th><th>자산 종류</th><th>카테고리</th><th>메모</th><th>작성자</th><th>작업</th>
+                </tr>
+              </thead>
+              <tbody id="txRows"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-12 card">
+          <h3>자산별 수입 · 지출 · 잔액</h3>
+          <p class="settings-hint" style="margin-top:2px;">자산명을 누르면 해당 자산 거래내역이 펼쳐집니다.</p>
+          <div id="assetSummaryRows" class="asset-summary-list"></div>
         </div>
       </div>
     </section>
@@ -945,7 +1082,7 @@
           <h2>자산 종류 목록</h2>
           <table class="mob-stack-table">
             <thead>
-              <tr><th>자산 종류</th><th>작업</th></tr>
+              <tr><th>자산 종류</th><th>우선선택</th><th>작업</th></tr>
             </thead>
             <tbody id="assetRows"></tbody>
           </table>
@@ -1047,7 +1184,7 @@
         <div class="row">
           <div class="field col-6">
             <label for="txAmount">금액</label>
-            <input id="txAmount" type="number" min="0" required>
+            <input id="txAmount" type="text" inputmode="numeric" placeholder="0원" autocomplete="off" required>
           </div>
           <div class="field col-6">
             <label for="txAssetType">자산 종류</label>
@@ -1123,6 +1260,7 @@
     let charts = { l1: null, l2: null, l3: null, asset: null };
     let lastClientUrl = "";
     let lastClientKey = "";
+    const txAmountEl = () => document.getElementById("txAmount");
 
     function loadConfig() {
       const raw = localStorage.getItem(CONFIG_KEY);
@@ -1134,7 +1272,39 @@
       }
     }
     function saveConfig(cfg) {
-      localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+      const base = loadConfig() || {};
+      localStorage.setItem(CONFIG_KEY, JSON.stringify({ ...base, ...cfg }));
+    }
+    function getDefaultAssetType() {
+      const cfg = loadConfig() || {};
+      const map = cfg.defaultAssetByHousehold || {};
+      return String(map[householdCode] || "").trim();
+    }
+    function setDefaultAssetType(name) {
+      const cfg = loadConfig() || {};
+      const nextMap = { ...(cfg.defaultAssetByHousehold || {}) };
+      if (name) nextMap[householdCode] = name;
+      else delete nextMap[householdCode];
+      saveConfig({ defaultAssetByHousehold: nextMap });
+    }
+    function parseCurrencyInput(value) {
+      const digits = String(value || "").replace(/[^\d]/g, "");
+      return digits ? Number(digits) : 0;
+    }
+    function formatCurrencyInput(value) {
+      const num = parseCurrencyInput(value);
+      if (!num) return "";
+      return `${KRW.format(num)}원`;
+    }
+    function bindAmountInputFormatter() {
+      const el = txAmountEl();
+      if (!el) return;
+      el.addEventListener("input", () => {
+        el.value = formatCurrencyInput(el.value);
+      });
+      el.addEventListener("blur", () => {
+        el.value = formatCurrencyInput(el.value);
+      });
     }
 
     function hasEmbeddedSupabaseDefaults() {
@@ -1497,7 +1667,9 @@
         opt.textContent = name;
         filterAssetType.appendChild(opt);
       });
-      if (values.length && !txAssetType.value) txAssetType.value = values[0];
+      const preferred = getDefaultAssetType();
+      if (values.includes(preferred)) txAssetType.value = preferred;
+      else if (values.length && !txAssetType.value) txAssetType.value = values[0];
     }
 
     function renderAssetRows() {
@@ -1509,12 +1681,34 @@
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td data-label="자산 종류">${name}</td>
+            <td data-label="우선선택">
+              <label class="asset-default-check">
+                <input type="checkbox" data-default-asset="${name}">
+                기본
+              </label>
+            </td>
             <td class="actions" data-label="작업">
               <button data-edit-asset="${name}">수정</button>
               <button data-del-asset="${name}" class="btn-danger">삭제</button>
             </td>`;
           tbody.appendChild(tr);
         });
+      const preferred = getDefaultAssetType();
+      tbody.querySelectorAll("[data-default-asset]").forEach((chk) => {
+        chk.checked = chk.getAttribute("data-default-asset") === preferred;
+        chk.onchange = () => {
+          if (!chk.checked) {
+            setDefaultAssetType("");
+            refreshAssetTypeSelectors();
+            renderAssetRows();
+            return;
+          }
+          const selected = chk.getAttribute("data-default-asset");
+          setDefaultAssetType(selected);
+          refreshAssetTypeSelectors();
+          renderAssetRows();
+        };
+      });
 
       tbody.querySelectorAll("[data-edit-asset]").forEach((btn) => {
         btn.onclick = () => {
@@ -1668,6 +1862,55 @@
         };
       });
     }
+    function renderAssetSummaries() {
+      const wrap = document.getElementById("assetSummaryRows");
+      if (!wrap) return;
+      const rows = getFilteredTransactions();
+      const byAsset = new Map();
+      rows.forEach((t) => {
+        const key = (t.assetType || "미지정").trim() || "미지정";
+        if (!byAsset.has(key)) byAsset.set(key, []);
+        byAsset.get(key).push(t);
+      });
+      const sortedAssets = [...byAsset.keys()].sort((a, b) => a.localeCompare(b));
+      if (!sortedAssets.length) {
+        wrap.innerHTML = `<div class="asset-summary-empty">표시할 거래가 없습니다.</div>`;
+        return;
+      }
+      wrap.innerHTML = "";
+      sortedAssets.forEach((asset) => {
+        const txList = byAsset.get(asset);
+        const income = txList.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount || 0), 0);
+        const expense = txList.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount || 0), 0);
+        const balance = income - expense;
+        const detailRows = txList
+          .slice()
+          .sort((a, b) => normalizeTransactionDate(b.date).localeCompare(normalizeTransactionDate(a.date)))
+          .map((t) => `
+            <div class="asset-summary-tx-row">
+              <span>${normalizeTransactionDate(t.date)}</span>
+              <span>${t.type === "income" ? "수입" : "지출"}</span>
+              <span>${formatCurrency(t.amount)}</span>
+              <span>${t.l1} &gt; ${t.l2} &gt; ${t.l3}</span>
+              <span>${t.owner || "-"}</span>
+            </div>
+          `)
+          .join("");
+        const item = document.createElement("details");
+        item.className = "asset-summary-item";
+        item.innerHTML = `
+          <summary>
+            <span class="sum-name">${asset}</span>
+            <span class="sum-income">수입 ${formatCurrency(income)}</span>
+            <span class="sum-expense">지출 ${formatCurrency(expense)}</span>
+            <span class="sum-balance">잔액 ${formatCurrency(balance)}</span>
+            <span class="sum-arrow">▼</span>
+          </summary>
+          <div class="asset-summary-tx">${detailRows || '<div class="asset-summary-empty">거래내역 없음</div>'}</div>
+        `;
+        wrap.appendChild(item);
+      });
+    }
 
     function fillTransactionForm(id) {
       const t = state.transactions.find((x) => x.id === id);
@@ -1675,7 +1918,7 @@
       document.getElementById("txId").value = t.id;
       document.getElementById("txDate").value = normalizeTransactionDate(t.date);
       document.getElementById("txType").value = t.type;
-      document.getElementById("txAmount").value = t.amount;
+      document.getElementById("txAmount").value = formatCurrencyInput(t.amount);
       document.getElementById("txAssetType").value = t.assetType || "";
       document.getElementById("txOwner").value = t.owner;
       document.getElementById("txMemo").value = t.memo || "";
@@ -1836,6 +2079,7 @@
       renderCategoryRows();
       renderAssetRows();
       renderTransactions();
+      renderAssetSummaries();
       renderDashboard();
       buildReports();
     }
@@ -1912,7 +2156,7 @@
           id: id || crypto.randomUUID(),
           date: document.getElementById("txDate").value,
           type: document.getElementById("txType").value,
-          amount: Number(document.getElementById("txAmount").value),
+          amount: parseCurrencyInput(document.getElementById("txAmount").value),
           assetType: document.getElementById("txAssetType").value,
           owner: document.getElementById("txOwner").value,
           memo: document.getElementById("txMemo").value.trim(),
@@ -2227,6 +2471,7 @@
       document.getElementById("reportMonth").value = ymNow;
       initAuthGateUI();
       initEvents();
+      bindAmountInputFormatter();
       const cfg = loadConfig();
       const defUrl = String(DEFAULT_SUPABASE_URL || "").trim();
       const defKey = String(DEFAULT_SUPABASE_ANON_KEY || "").trim();
