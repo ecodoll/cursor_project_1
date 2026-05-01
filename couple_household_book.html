@@ -376,6 +376,95 @@
       white-space: nowrap;
       vertical-align: middle;
     }
+    .tx-mobile-list {
+      display: none;
+    }
+    .txm-day-block {
+      border: 2px solid rgba(30, 27, 75, 0.45);
+      border-radius: 18px;
+      background: #fff;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .txm-day-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+      padding: 10px 12px 8px;
+      border-bottom: 1px solid rgba(30, 27, 75, 0.25);
+      background: linear-gradient(180deg, #ffffff 0%, #faf5ff 100%);
+    }
+    .txm-date {
+      font-size: 15px;
+      font-weight: 800;
+      color: #1f2937;
+    }
+    .txm-summary {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .txm-summary .income { color: #2563eb; }
+    .txm-summary .expense { color: #dc2626; }
+    .txm-summary .balance { color: #111827; }
+    .txm-items {
+      padding: 4px 0;
+      background: #fff;
+    }
+    .txm-item {
+      display: grid;
+      grid-template-columns: 18px minmax(58px, 0.8fr) 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(30, 27, 75, 0.14);
+    }
+    .txm-item:last-child { border-bottom: none; }
+    .txm-checkbox {
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid rgba(30, 27, 75, 0.45);
+      border-radius: 2px;
+      background: #fff;
+    }
+    .txm-owner {
+      font-size: 14px;
+      font-weight: 700;
+      color: #111827;
+      white-space: nowrap;
+    }
+    .txm-desc {
+      font-size: 14px;
+      color: #1f2937;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .txm-amount {
+      font-size: 16px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .txm-amount.income { color: #2563eb; }
+    .txm-amount.expense { color: #dc2626; }
+    .txm-actions {
+      grid-column: 2 / -1;
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+      margin-top: 2px;
+    }
+    .txm-actions button {
+      min-height: 30px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
     .asset-summary-list {
       display: flex;
       flex-direction: column;
@@ -730,6 +819,39 @@
       width: 16px;
       height: 16px;
     }
+    body.mobile-ui #tab-dashboard .tx-table-wrap {
+      display: none;
+    }
+    body.mobile-ui #tab-dashboard .tx-mobile-list {
+      display: block;
+    }
+    body.mobile-ui #tab-dashboard .txm-day-block {
+      border-radius: 16px;
+      margin-bottom: 10px;
+    }
+    body.mobile-ui #tab-dashboard .txm-day-head {
+      padding: 10px 10px 8px;
+    }
+    body.mobile-ui #tab-dashboard .txm-date {
+      font-size: 14px;
+    }
+    body.mobile-ui #tab-dashboard .txm-summary {
+      font-size: 12px;
+    }
+    body.mobile-ui #tab-dashboard .txm-item {
+      grid-template-columns: 16px minmax(46px, 0.85fr) 1fr auto;
+      gap: 6px;
+      padding: 8px 10px;
+    }
+    body.mobile-ui #tab-dashboard .txm-owner {
+      font-size: 13px;
+    }
+    body.mobile-ui #tab-dashboard .txm-desc {
+      font-size: 13px;
+    }
+    body.mobile-ui #tab-dashboard .txm-amount {
+      font-size: 15px;
+    }
     body.mobile-ui .filter-all-label {
       padding: 10px 12px;
       background: rgba(250, 245, 255, 0.9);
@@ -1038,6 +1160,7 @@
               <tbody id="txRows"></tbody>
             </table>
           </div>
+          <div id="txMobileRows" class="tx-mobile-list"></div>
         </div>
         <div class="col-12 card">
           <h3>자산별 수입 · 지출 · 잔액</h3>
@@ -1668,6 +1791,13 @@
       }
       return "";
     }
+    function dateWithWeekday(ymd) {
+      if (!ymd) return "날짜 미지정";
+      const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+      const d = new Date(`${ymd}T00:00:00`);
+      if (Number.isNaN(d.getTime())) return ymd;
+      return `${ymd} (${weekdays[d.getDay()]})`;
+    }
     function monthKeyFromDate(v) {
       const ymd = normalizeTransactionDate(v);
       return ymd ? ymd.slice(0, 7) : "";
@@ -1884,6 +2014,7 @@
 
     function renderTransactions() {
       const tbody = document.getElementById("txRows");
+      const mobileWrap = document.getElementById("txMobileRows");
       const rows = getFilteredTransactions();
       tbody.innerHTML = "";
       rows.forEach((t) => {
@@ -1902,6 +2033,51 @@
           </td>`;
         tbody.appendChild(tr);
       });
+      if (mobileWrap) {
+        if (!rows.length) {
+          mobileWrap.innerHTML = `<div class="asset-summary-empty">표시할 거래가 없습니다.</div>`;
+        } else {
+          const byDate = new Map();
+          rows.forEach((t) => {
+            const key = normalizeTransactionDate(t.date) || "날짜 미지정";
+            if (!byDate.has(key)) byDate.set(key, []);
+            byDate.get(key).push(t);
+          });
+          mobileWrap.innerHTML = [...byDate.entries()].map(([date, list]) => {
+            const income = list.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount || 0), 0);
+            const expense = list.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount || 0), 0);
+            const balance = income - expense;
+            const items = list.map((t) => {
+              const desc = (t.memo || "").trim() || `${t.l1} > ${t.l2} > ${t.l3}`;
+              return `
+                <div class="txm-item">
+                  <span class="txm-checkbox" aria-hidden="true"></span>
+                  <span class="txm-owner">${t.owner || "-"}</span>
+                  <span class="txm-desc">${desc}</span>
+                  <span class="txm-amount ${t.type}">${formatCurrency(t.amount)}</span>
+                  <div class="txm-actions">
+                    <button type="button" data-edit="${t.id}">수정</button>
+                    <button type="button" data-del="${t.id}" class="btn-danger">삭제</button>
+                  </div>
+                </div>
+              `;
+            }).join("");
+            return `
+              <div class="txm-day-block">
+                <div class="txm-day-head">
+                  <div class="txm-date">${dateWithWeekday(date)}</div>
+                  <div class="txm-summary">
+                    <span class="income">수입 ${formatCurrency(income)}</span>
+                    <span class="expense">지출 ${formatCurrency(expense)}</span>
+                    <span class="balance">잔액 ${formatCurrency(balance)}</span>
+                  </div>
+                </div>
+                <div class="txm-items">${items}</div>
+              </div>
+            `;
+          }).join("");
+        }
+      }
       tbody.querySelectorAll("[data-edit]").forEach((btn) => {
         btn.onclick = () => openTransactionModalForEdit(btn.getAttribute("data-edit"));
       });
@@ -1911,6 +2087,17 @@
           deleteTransactionRemote(id);
         };
       });
+      if (mobileWrap) {
+        mobileWrap.querySelectorAll("[data-edit]").forEach((btn) => {
+          btn.onclick = () => openTransactionModalForEdit(btn.getAttribute("data-edit"));
+        });
+        mobileWrap.querySelectorAll("[data-del]").forEach((btn) => {
+          btn.onclick = () => {
+            const id = btn.getAttribute("data-del");
+            deleteTransactionRemote(id);
+          };
+        });
+      }
     }
     function renderAssetSummaries() {
       const wrap = document.getElementById("assetSummaryRows");
