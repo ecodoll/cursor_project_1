@@ -418,25 +418,20 @@
     }
     .txm-item {
       display: grid;
-      grid-template-columns: 18px minmax(58px, 0.8fr) 1fr auto;
+      grid-template-columns: auto auto 1fr auto auto;
       gap: 8px;
       align-items: center;
       padding: 10px 12px;
       border-bottom: 1px solid rgba(30, 27, 75, 0.14);
     }
     .txm-item:last-child { border-bottom: none; }
-    .txm-checkbox {
-      width: 14px;
-      height: 14px;
-      border: 1.5px solid rgba(30, 27, 75, 0.45);
-      border-radius: 2px;
-      background: #fff;
-    }
-    .txm-owner {
-      font-size: 14px;
+    .txm-time {
+      font-size: 12px;
       font-weight: 700;
-      color: #111827;
+      color: #6b7280;
       white-space: nowrap;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
     }
     .txm-desc {
       font-size: 14px;
@@ -453,11 +448,9 @@
     .txm-amount.income { color: #2563eb; }
     .txm-amount.expense { color: #dc2626; }
     .txm-actions {
-      grid-column: 2 / -1;
       display: flex;
       gap: 6px;
       justify-content: flex-end;
-      margin-top: 2px;
     }
     .txm-actions button {
       min-height: 30px;
@@ -503,7 +496,7 @@
     }
     .asset-summary-tx-row {
       display: grid;
-      grid-template-columns: 96px 52px 108px 1fr 80px;
+      grid-template-columns: 96px 52px 108px 1fr;
       gap: 8px;
       align-items: center;
       font-size: 13px;
@@ -839,18 +832,23 @@
       font-size: 12px;
     }
     body.mobile-ui #tab-dashboard .txm-item {
-      grid-template-columns: 16px minmax(46px, 0.85fr) 1fr auto;
+      grid-template-columns: auto auto 1fr auto auto;
       gap: 6px;
       padding: 8px 10px;
     }
-    body.mobile-ui #tab-dashboard .txm-owner {
-      font-size: 13px;
+    body.mobile-ui #tab-dashboard .txm-time {
+      font-size: 11px;
     }
     body.mobile-ui #tab-dashboard .txm-desc {
       font-size: 13px;
     }
     body.mobile-ui #tab-dashboard .txm-amount {
       font-size: 15px;
+    }
+    body.mobile-ui #tab-dashboard .txm-actions button {
+      min-height: 28px;
+      padding: 4px 8px;
+      font-size: 11px;
     }
     body.mobile-ui .filter-all-label {
       padding: 10px 12px;
@@ -1099,10 +1097,6 @@
           <div class="muted tagline-mobile">같이 쓰는 가벼운 가계부</div>
         </div>
       </div>
-      <div class="right-tools">
-        <label for="activeUser">작성자</label>
-        <select id="activeUser"></select>
-      </div>
       <div class="tabs" role="tablist">
         <button type="button" class="tab-btn active" data-tab="dashboard" role="tab">메인</button>
         <button type="button" class="tab-btn" data-tab="transactions" role="tab">월 요약</button>
@@ -1120,41 +1114,11 @@
             <h2>거래내역</h2>
             <button id="openTxModalBtn" class="btn-primary" type="button">거래 추가</button>
           </div>
-          <div class="filter-month-row tx-filter-row">
-            <div class="field col-3">
-              <label for="filterMonth">월 선택</label>
-              <input id="filterMonth" type="month">
-            </div>
-            <label class="filter-all-label">
-              <input type="checkbox" id="filterAllMonths">
-              전체 기간 보기
-            </label>
-            <div class="field col-3">
-              <label for="filterType">유형 필터</label>
-              <select id="filterType">
-                <option value="">전체</option>
-                <option value="income">수입</option>
-                <option value="expense">지출</option>
-              </select>
-            </div>
-            <div class="field col-3">
-              <label for="filterOwner">작성자 필터</label>
-              <select id="filterOwner">
-                <option value="">전체</option>
-              </select>
-            </div>
-            <div class="field col-3">
-              <label for="filterAssetType">자산 종류 필터</label>
-              <select id="filterAssetType">
-                <option value="">전체</option>
-              </select>
-            </div>
-          </div>
           <div class="tx-table-wrap">
             <table class="tx-single-line">
               <thead>
                 <tr>
-                  <th>날짜</th><th>유형</th><th>금액</th><th>자산 종류</th><th>카테고리</th><th>메모</th><th>작성자</th><th>작업</th>
+                  <th>시간</th><th>유형</th><th>메모</th><th>금액</th><th>작업</th>
                 </tr>
               </thead>
               <tbody id="txRows"></tbody>
@@ -1194,7 +1158,7 @@
           <table class="mob-stack-table">
             <thead>
               <tr>
-                <th>날짜</th><th>유형</th><th>금액</th><th>자산 종류</th><th>카테고리</th><th>메모</th><th>작성자</th>
+                <th>날짜</th><th>유형</th><th>금액</th><th>자산 종류</th><th>카테고리</th><th>메모</th>
               </tr>
             </thead>
             <tbody id="recentRows"></tbody>
@@ -1364,12 +1328,6 @@
             <select id="txAssetType" required></select>
           </div>
         </div>
-        <div class="row">
-          <div class="field col-6">
-            <label for="txOwner">작성자</label>
-            <select id="txOwner"></select>
-          </div>
-        </div>
         <div class="row category-select-row">
           <div class="field col-4">
             <label for="catL1">대분류</label>
@@ -1433,6 +1391,7 @@
     let charts = { l1: null, l2: null, l3: null, asset: null };
     let lastClientUrl = "";
     let lastClientKey = "";
+    let currentUserEmail = "";
     const txAmountEl = () => document.getElementById("txAmount");
 
     function loadConfig() {
@@ -1699,6 +1658,7 @@
       if (sbKey) sbKey.value = anonKey;
       if (hh) hh.value = code;
       saveConfig({ url, anonKey, code });
+      currentUserEmail = (session.user?.email || "").trim();
       const line = document.getElementById("settingsAccountLine");
       if (line) line.textContent = session.user?.email ? `현재 계정: ${session.user.email}` : "";
       setConnectionStatus("데이터 불러오는 중…", false);
@@ -1754,6 +1714,7 @@
       supabaseClient = null;
       lastClientUrl = "";
       lastClientKey = "";
+      currentUserEmail = "";
       state.users = [...defaultUsers];
       state.categories = [];
       state.assetTypes = [];
@@ -1791,6 +1752,14 @@
       }
       return "";
     }
+    function formatTimeOfCreated(iso) {
+      if (!iso) return "—";
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return "—";
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      return `${hh}:${mm}`;
+    }
     function dateWithWeekday(ymd) {
       if (!ymd) return "날짜 미지정";
       const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
@@ -1813,40 +1782,13 @@
       });
     }
 
-    function initUsers() {
-      const activeUser = document.getElementById("activeUser");
-      const txOwner = document.getElementById("txOwner");
-      const filterOwner = document.getElementById("filterOwner");
-      activeUser.innerHTML = "";
-      txOwner.innerHTML = "";
-      filterOwner.innerHTML = '<option value="">전체</option>';
-      state.users.forEach((u) => {
-        [activeUser, txOwner].forEach((sel) => {
-          const o = document.createElement("option");
-          o.value = u;
-          o.textContent = u;
-          sel.appendChild(o);
-        });
-        const fo = document.createElement("option");
-        fo.value = u;
-        fo.textContent = u;
-        filterOwner.appendChild(fo);
-      });
-      txOwner.value = activeUser.value || state.users[0];
-    }
+    function initUsers() {}
 
     function refreshAssetTypeSelectors() {
       const txAssetType = document.getElementById("txAssetType");
-      const filterAssetType = document.getElementById("filterAssetType");
+      if (!txAssetType) return;
       const values = [...state.assetTypes].sort((a, b) => a.localeCompare(b));
       setOptions(txAssetType, values);
-      filterAssetType.innerHTML = '<option value="">전체</option>';
-      values.forEach((name) => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        filterAssetType.appendChild(opt);
-      });
       const preferred = getDefaultAssetType();
       if (values.includes(preferred)) txAssetType.value = preferred;
       else if (values.length && !txAssetType.value) txAssetType.value = values[0];
@@ -1999,16 +1941,7 @@
     }
 
     function getFilteredTransactions() {
-      const allMonths = document.getElementById("filterAllMonths").checked;
-      const m = document.getElementById("filterMonth").value || ymNow;
-      const type = document.getElementById("filterType").value;
-      const owner = document.getElementById("filterOwner").value.trim();
-      const assetType = document.getElementById("filterAssetType").value.trim();
-      return state.transactions
-        .filter((t) => allMonths || monthKeyFromDate(t.date) === m)
-        .filter((t) => !type || t.type === type)
-        .filter((t) => !owner || (t.owner || "").trim() === owner)
-        .filter((t) => !assetType || (t.assetType || "").trim() === assetType)
+      return [...state.transactions]
         .sort((a, b) => normalizeTransactionDate(b.date).localeCompare(normalizeTransactionDate(a.date)));
     }
 
@@ -2020,13 +1953,10 @@
       rows.forEach((t) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td data-label="날짜">${normalizeTransactionDate(t.date)}</td>
+          <td data-label="시간">${formatTimeOfCreated(t.createdAt)}</td>
           <td data-label="유형"><span class="pill ${t.type}">${t.type === "income" ? "수입" : "지출"}</span></td>
-          <td data-label="금액">${formatCurrency(t.amount)}</td>
-          <td data-label="자산 종류">${t.assetType || "—"}</td>
-          <td data-label="카테고리">${t.l1} &gt; ${t.l2} &gt; ${t.l3}</td>
           <td data-label="메모">${t.memo || "—"}</td>
-          <td data-label="작성자">${t.owner}</td>
+          <td data-label="금액">${formatCurrency(t.amount)}</td>
           <td class="actions" data-label="작업">
             <button data-edit="${t.id}">수정</button>
             <button data-del="${t.id}" class="btn-danger">삭제</button>
@@ -2047,12 +1977,13 @@
             const income = list.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount || 0), 0);
             const expense = list.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount || 0), 0);
             const balance = income - expense;
-            const items = list.map((t) => {
-              const desc = (t.memo || "").trim() || `${t.l1} > ${t.l2} > ${t.l3}`;
+            const sortedList = [...list].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+            const items = sortedList.map((t) => {
+              const desc = (t.memo || "").trim() || "—";
               return `
                 <div class="txm-item">
-                  <span class="txm-checkbox" aria-hidden="true"></span>
-                  <span class="txm-owner">${t.owner || "-"}</span>
+                  <span class="txm-time">${formatTimeOfCreated(t.createdAt)}</span>
+                  <span class="pill ${t.type}">${t.type === "income" ? "수입" : "지출"}</span>
                   <span class="txm-desc">${desc}</span>
                   <span class="txm-amount ${t.type}">${formatCurrency(t.amount)}</span>
                   <div class="txm-actions">
@@ -2157,7 +2088,6 @@
       document.getElementById("txType").value = t.type;
       document.getElementById("txAmount").value = formatCurrencyInput(t.amount);
       document.getElementById("txAssetType").value = t.assetType || "";
-      document.getElementById("txOwner").value = t.owner;
       document.getElementById("txMemo").value = t.memo || "";
       document.getElementById("catL1").value = t.l1;
       document.getElementById("catL1").dispatchEvent(new Event("change"));
@@ -2170,11 +2100,10 @@
       document.getElementById("txForm").reset();
       document.getElementById("txId").value = "";
       document.getElementById("txDate").valueAsDate = new Date();
-      document.getElementById("filterMonth").value = ymNow;
-      document.getElementById("reportMonth").value = ymNow;
+      const reportMonth = document.getElementById("reportMonth");
+      if (reportMonth) reportMonth.value = ymNow;
       refreshCategorySelectors();
       refreshAssetTypeSelectors();
-      document.getElementById("txOwner").value = document.getElementById("activeUser").value || state.users[0];
     }
     function openTransactionModalForCreate() {
       resetTransactionForm();
@@ -2215,8 +2144,7 @@
           <td data-label="금액">${formatCurrency(t.amount)}</td>
           <td data-label="자산 종류">${t.assetType || "—"}</td>
           <td data-label="카테고리">${t.l1} &gt; ${t.l2} &gt; ${t.l3}</td>
-          <td data-label="메모">${t.memo || "—"}</td>
-          <td data-label="작성자">${t.owner}</td>`;
+          <td data-label="메모">${t.memo || "—"}</td>`;
         tbody.appendChild(tr);
       });
     }
@@ -2353,9 +2281,6 @@
         };
       });
 
-      document.getElementById("activeUser").onchange = (e) => {
-        document.getElementById("txOwner").value = e.target.value;
-      };
       document.getElementById("openTxModalBtn").onclick = openTransactionModalForCreate;
       document.getElementById("closeTxModalBtn").onclick = closeTransactionModal;
       document.getElementById("closeTxModalX").onclick = closeTransactionModal;
@@ -2366,14 +2291,6 @@
         if (e.key === "Escape") closeTransactionModal();
       });
 
-      ["filterMonth", "filterType", "filterOwner", "filterAssetType"].forEach((id) => {
-        document.getElementById(id).onchange = renderTransactions;
-      });
-      document.getElementById("filterAllMonths").onchange = () => {
-        const inp = document.getElementById("filterMonth");
-        inp.disabled = document.getElementById("filterAllMonths").checked;
-        renderTransactions();
-      };
       ["reportMonth", "reportType"].forEach((id) => {
         document.getElementById(id).onchange = buildReports;
       });
@@ -2395,13 +2312,13 @@
           type: document.getElementById("txType").value,
           amount: parseCurrencyInput(document.getElementById("txAmount").value),
           assetType: document.getElementById("txAssetType").value,
-          owner: document.getElementById("txOwner").value,
+          owner: currentUserEmail || "공유",
           memo: document.getElementById("txMemo").value.trim(),
           categoryId: category?.id || null,
           l1, l2, l3,
           household_code: householdCode
         };
-        if (!payload.date || !payload.amount || !payload.owner || !payload.assetType || !payload.l1 || !payload.l2 || !payload.l3) return;
+        if (!payload.date || !payload.amount || !payload.assetType || !payload.l1 || !payload.l2 || !payload.l3) return;
         upsertTransactionRemote(payload);
       };
 
@@ -2577,7 +2494,8 @@
           categoryId: t.category_id,
           l1: t.l1,
           l2: t.l2,
-          l3: t.l3
+          l3: t.l3,
+          createdAt: t.created_at || ""
         }));
         initUsers();
         refreshAll();
@@ -2704,7 +2622,6 @@
       initViewportUiMode();
       closeTransactionModal();
       document.getElementById("txDate").valueAsDate = new Date();
-      document.getElementById("filterMonth").value = ymNow;
       document.getElementById("reportMonth").value = ymNow;
       initAuthGateUI();
       initEvents();
