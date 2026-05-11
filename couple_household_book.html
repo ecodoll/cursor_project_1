@@ -877,23 +877,55 @@
       box-shadow: var(--mu-shadow);
     }
     body.mobile-ui .tx-dashboard-toolbar {
-      grid-template-columns: 1fr auto;
-      grid-template-rows: auto auto;
-      gap: 10px 12px;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
     }
     body.mobile-ui .tx-dashboard-toolbar .tx-month-nav {
-      grid-column: 1 / -1;
-      grid-row: 1;
+      flex: 1 1 auto;
+      min-width: 0;
+      max-width: 100%;
+      padding: 6px 8px;
+      gap: 6px;
+    }
+    body.mobile-ui .tx-dashboard-toolbar .tx-month-arrow {
+      width: 32px;
+      height: 32px;
+      min-height: 32px;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+    body.mobile-ui .tx-dashboard-toolbar .tx-month-label {
+      min-width: 0;
+      flex: 1 1 auto;
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     body.mobile-ui .tx-dashboard-toolbar .tx-toolbar-tab-icons {
-      grid-column: 1;
-      grid-row: 2;
-      justify-self: start;
+      flex: 0 0 auto;
+      gap: 4px;
+    }
+    body.mobile-ui .tx-dashboard-toolbar .tab-icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+    }
+    body.mobile-ui .tx-dashboard-toolbar .tab-icon-btn svg {
+      width: 19px;
+      height: 19px;
     }
     body.mobile-ui .tx-dashboard-toolbar #openTxModalBtn {
-      grid-column: 2;
-      grid-row: 2;
-      justify-self: end;
+      flex: 0 0 auto;
+      padding: 9px 11px;
+      font-size: 13px;
+      white-space: nowrap;
     }
     body.mobile-ui h2, body.mobile-ui h3 {
       font-weight: 800;
