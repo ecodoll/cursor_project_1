@@ -66,27 +66,26 @@
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(168, 85, 247, 0.14);
       border-radius: var(--radius-lg);
-      padding: 18px 20px;
+      padding: 14px 16px;
       box-shadow: var(--shadow);
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      gap: 14px 16px;
-      margin-bottom: 20px;
-    }
-    .topbar-cell--left { justify-self: start; min-width: 0; }
-    .topbar-cell--center {
-      justify-self: center;
       display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .topbar-cell--right {
-      justify-self: end;
-      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
       align-items: center;
       gap: 10px;
+      margin-bottom: 20px;
       min-width: 0;
+    }
+    .topbar .tx-month-nav {
+      flex: 1 1 auto;
+      min-width: 0;
+      margin: 0;
+    }
+    .main-app-toolbar-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
     }
     .topbar-head {
       display: flex;
@@ -326,11 +325,11 @@
       cursor: pointer;
       font-weight: 600;
     }
-    button:not(.tab-btn):not(.btn-primary):not(.btn-danger):not(.tab-icon-btn):not(.header-settings-btn):not(.brand-title-btn):not(.header-settings-menu-item):not(.btn-tx-add) {
+    button:not(.tab-btn):not(.btn-primary):not(.btn-danger):not(.tab-icon-btn):not(.header-settings-btn):not(.brand-title-btn):not(.header-settings-menu-item):not(.btn-tx-add):not(.txm-edit-btn) {
       background: rgba(250, 245, 255, 0.95);
       border-color: rgba(168, 85, 247, 0.12);
     }
-    button:not(.tab-btn):not(.btn-primary):not(.btn-danger):not(.tab-icon-btn):not(.header-settings-btn):not(.brand-title-btn):not(.header-settings-menu-item):not(.btn-tx-add):hover {
+    button:not(.tab-btn):not(.btn-primary):not(.btn-danger):not(.tab-icon-btn):not(.header-settings-btn):not(.brand-title-btn):not(.header-settings-menu-item):not(.btn-tx-add):not(.txm-edit-btn):hover {
       background: #fff;
       border-color: rgba(168, 85, 247, 0.22);
     }
@@ -384,17 +383,8 @@
       margin-bottom: 16px;
       line-height: 1.55;
     }
-    .tx-dashboard-toolbar {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 10px 12px;
-      margin-bottom: 14px;
-    }
-    .tx-dashboard-toolbar .tx-month-nav {
-      justify-content: flex-start;
-      min-width: 0;
-      margin: 0;
+    .tx-dashboard-card {
+      padding-top: 14px;
     }
     .btn-tx-add {
       width: 44px;
@@ -441,21 +431,84 @@
       border-radius: 18px;
       border: 1px solid var(--border);
       box-shadow: 0 24px 60px rgba(2, 6, 23, 0.25);
-      padding: 16px;
+      padding: 14px 16px 16px;
     }
     .tx-modal-head {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
+      gap: 12px;
+      margin-bottom: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding-bottom: 8px;
+      margin-top: -2px;
+      padding-top: 2px;
+      background: linear-gradient(180deg, #fffefb 88%, transparent 100%);
     }
     .tx-modal-head h2 {
       margin: 0;
+      font-size: 1.1rem;
+      line-height: 1.35;
+      padding-top: 4px;
     }
-    .tx-modal-head button {
-      padding: 8px 10px;
+    .tx-modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .tx-modal-actions button {
+      padding: 8px 12px;
       min-width: auto;
+      font-size: 13px;
+      border-radius: 10px;
+    }
+    .tx-modal-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tx-modal-row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 12px;
+      align-items: center;
+    }
+    .tx-inline-field {
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr);
+      gap: 8px 10px;
+      align-items: center;
+    }
+    .tx-inline-field label {
+      margin: 0;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .tx-inline-field input,
+    .tx-inline-field select {
+      width: 100%;
+      min-width: 0;
+    }
+    .tx-cat-inline-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px 10px;
+      align-items: center;
+    }
+    .tx-cat-inline-row .tx-inline-field {
+      grid-template-columns: 44px minmax(0, 1fr);
+    }
+    .tx-inline-field--memo {
+      grid-template-columns: 52px minmax(0, 1fr);
+    }
+    @media (max-width: 560px) {
+      .tx-modal-row2 { grid-template-columns: 1fr; }
+      .tx-cat-inline-row { grid-template-columns: 1fr; }
     }
     select.category-select {
       min-height: 46px;
@@ -582,7 +635,7 @@
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 10px;
-      align-items: start;
+      align-items: center;
       padding: 10px 12px 8px;
       border-bottom: 1px solid rgba(30, 27, 75, 0.25);
       background: linear-gradient(180deg, #ffffff 0%, #faf5ff 100%);
@@ -590,12 +643,16 @@
     .txm-date {
       font-size: 15px;
       font-weight: 800;
-      color: #1f2937;
     }
+    .txm-date--weekday { color: #111827; }
+    .txm-date--sat { color: #2563eb; }
+    .txm-date--sun { color: #dc2626; }
+    .txm-date--plain { color: #1f2937; }
     .txm-summary {
       display: flex;
       flex-direction: row;
       align-items: center;
+      justify-content: flex-end;
       gap: 10px;
       font-size: 13px;
       font-weight: 800;
@@ -608,7 +665,7 @@
     }
     .txm-summary .income { color: #2563eb; }
     .txm-summary .expense { color: #dc2626; }
-    .txm-summary .balance { color: #111827; }
+    .txm-summary .balance { display: none; }
     .txm-items {
       padding: 4px 0;
       background: #fff;
@@ -644,16 +701,27 @@
     }
     .txm-amount.income { color: #2563eb; }
     .txm-amount.expense { color: #dc2626; }
-    .txm-actions {
-      display: flex;
-      gap: 6px;
-      justify-content: flex-end;
+    .txm-edit-btn {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      border: 1px solid rgba(168, 85, 247, 0.28);
+      background: #fff;
+      color: #6b21a8;
+      cursor: pointer;
     }
-    .txm-actions button {
-      min-height: 30px;
-      padding: 5px 10px;
-      border-radius: 8px;
-      font-size: 12px;
+    .txm-edit-btn:hover {
+      background: #faf5ff;
+      border-color: rgba(168, 85, 247, 0.45);
+    }
+    .txm-edit-btn svg {
+      width: 18px;
+      height: 18px;
     }
     .asset-summary-list {
       display: flex;
@@ -859,32 +927,49 @@
     }
     body.mobile-ui .tagline-desktop { display: none; }
     body.mobile-ui .topbar {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
       align-items: center;
-      gap: 8px 6px;
-      padding: 16px 14px;
+      gap: 6px;
+      padding: 12px 12px;
       border-radius: 22px;
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 250, 252, 0.98) 100%);
       border-color: var(--mu-border);
       box-shadow: var(--mu-shadow);
     }
-    body.mobile-ui .topbar-cell--left {
-      grid-column: 1;
-      grid-row: 1;
-      justify-self: start;
+    body.mobile-ui .topbar .tx-month-nav {
+      flex: 1 1 auto;
       min-width: 0;
+      max-width: 100%;
+      padding: 6px 8px;
+      gap: 6px;
     }
-    body.mobile-ui .topbar-cell--center {
-      grid-column: 2;
-      grid-row: 1;
-      justify-self: center;
+    body.mobile-ui .topbar .tx-month-arrow {
+      width: 32px;
+      height: 32px;
+      min-height: 32px;
+      font-size: 17px;
+      flex-shrink: 0;
     }
-    body.mobile-ui .topbar-cell--right {
-      grid-column: 3;
-      grid-row: 1;
-      justify-self: end;
-      align-self: center;
+    body.mobile-ui .topbar .tx-month-label {
+      min-width: 0;
+      flex: 1 1 auto;
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    body.mobile-ui .topbar .btn-tx-add {
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+    }
+    body.mobile-ui .topbar .btn-tx-add svg {
+      width: 21px;
+      height: 21px;
     }
     body.mobile-ui .topbar-head {
       min-width: 0;
@@ -943,47 +1028,6 @@
       background: var(--mu-card);
       border-color: var(--mu-border);
       box-shadow: var(--mu-shadow);
-    }
-    body.mobile-ui .tx-dashboard-toolbar {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      align-items: center;
-      gap: 6px;
-      min-width: 0;
-    }
-    body.mobile-ui .tx-dashboard-toolbar .tx-month-nav {
-      flex: 1 1 auto;
-      min-width: 0;
-      max-width: 100%;
-      padding: 6px 8px;
-      gap: 6px;
-    }
-    body.mobile-ui .tx-dashboard-toolbar .tx-month-arrow {
-      width: 32px;
-      height: 32px;
-      min-height: 32px;
-      font-size: 17px;
-      flex-shrink: 0;
-    }
-    body.mobile-ui .tx-dashboard-toolbar .tx-month-label {
-      min-width: 0;
-      flex: 1 1 auto;
-      font-size: 14px;
-      font-weight: 800;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    body.mobile-ui .tx-dashboard-toolbar .btn-tx-add {
-      width: 42px;
-      height: 42px;
-      min-width: 42px;
-    }
-    body.mobile-ui .tx-dashboard-toolbar .btn-tx-add svg {
-      width: 21px;
-      height: 21px;
     }
     body.mobile-ui h2, body.mobile-ui h3 {
       font-weight: 800;
@@ -1131,10 +1175,16 @@
     body.mobile-ui #tab-dashboard .txm-amount {
       font-size: 15px;
     }
-    body.mobile-ui #tab-dashboard .txm-actions button {
-      min-height: 28px;
-      padding: 4px 8px;
-      font-size: 11px;
+    body.mobile-ui #tab-dashboard .txm-edit-btn {
+      width: 34px;
+      height: 34px;
+      min-height: 34px;
+      min-width: 34px;
+      padding: 0;
+    }
+    body.mobile-ui #tab-dashboard .txm-edit-btn svg {
+      width: 16px;
+      height: 16px;
     }
     body.mobile-ui .filter-all-label {
       padding: 10px 12px;
@@ -1382,17 +1432,12 @@
   <div id="mainApp" class="hidden">
   <div class="container">
     <div class="topbar">
-      <div class="topbar-cell topbar-cell--left">
-        <div class="topbar-head">
-          <div class="title-block">
-            <button type="button" class="brand-title-btn" id="brandTitleBtn" aria-label="메인으로 이동">
-              <h1>가계부</h1>
-            </button>
-            <div class="muted tagline-desktop">모바일·PC에서 함께 쓰는 반응형 가계부</div>
-          </div>
-        </div>
+      <div class="tx-month-nav" role="group" aria-label="월 선택">
+        <button id="prevMonthBtn" type="button" class="tx-month-arrow" aria-label="이전 달">‹</button>
+        <span id="monthLabel" class="tx-month-label" aria-live="polite"></span>
+        <button id="nextMonthBtn" type="button" class="tx-month-arrow" aria-label="다음 달">›</button>
       </div>
-      <div class="topbar-cell topbar-cell--center" role="tablist" aria-label="거래·요약·리포트">
+      <div class="main-app-toolbar-icons" role="tablist" aria-label="화면 전환">
         <button type="button" class="tab-icon-btn" data-tab="dashboard" role="tab" aria-label="거래 내역" title="거래 내역">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="8" y1="6" x2="21" y2="6"></line>
@@ -1418,41 +1463,24 @@
             <line x1="6" y1="20" x2="6" y2="14"></line>
           </svg>
         </button>
+        <button type="button" class="tab-icon-btn" data-tab="settings" role="tab" aria-label="접속 설정" title="접속 설정">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
       </div>
-      <div class="topbar-cell topbar-cell--right">
-        <div class="header-avatar" id="headerUserAvatar" title="" aria-hidden="true">?</div>
-        <div class="header-settings-wrap">
-          <button type="button" class="header-settings-btn" id="headerSettingsBtn" aria-expanded="false" aria-controls="headerSettingsMenu" aria-label="설정 메뉴 열기" title="설정">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
-            </svg>
-          </button>
-          <div id="headerSettingsMenu" class="header-settings-dropdown hidden" role="menu" aria-label="설정 하위 메뉴">
-            <button type="button" class="header-settings-menu-item" role="menuitem" data-tab="categories">카테고리</button>
-            <button type="button" class="header-settings-menu-item" role="menuitem" data-tab="assets">자산 종류</button>
-            <button type="button" class="header-settings-menu-item" role="menuitem" data-tab="settings">접속 설정</button>
-          </div>
-        </div>
-      </div>
+      <button type="button" id="openTxModalBtn" class="btn-tx-add" aria-label="거래 추가" title="거래 추가">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
     </div>
 
     <section id="tab-dashboard" class="tab-panel">
       <div class="grid">
-        <div class="col-12 card">
-          <div class="tx-dashboard-toolbar">
-            <div class="tx-month-nav" role="group" aria-label="월 선택">
-              <button id="prevMonthBtn" type="button" class="tx-month-arrow" aria-label="이전 달">‹</button>
-              <span id="monthLabel" class="tx-month-label" aria-live="polite"></span>
-              <button id="nextMonthBtn" type="button" class="tx-month-arrow" aria-label="다음 달">›</button>
-            </div>
-            <button type="button" id="openTxModalBtn" class="btn-tx-add" aria-label="거래 추가" title="거래 추가">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </button>
-          </div>
+        <div class="col-12 card tx-dashboard-card">
           <div id="txMobileRows" class="tx-mobile-list"></div>
         </div>
         <div class="col-12 card">
@@ -1597,6 +1625,10 @@
       <div class="grid">
         <div class="col-12 card">
           <h2>접속 설정</h2>
+          <div class="settings-jump-row" style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;">
+            <button type="button" class="tab-btn" id="jumpTabCategories">카테고리</button>
+            <button type="button" class="tab-btn" id="jumpTabAssets">자산 종류</button>
+          </div>
           <p class="settings-hint">로그인한 계정에 가족 코드가 연결되어 있으며, URL·Anon Key는 이 브라우저에 저장됩니다. 공용 PC에서는 로그아웃 후 이용해 주세요. (배포본에 기본 URL·키를 넣어 두면 이 탭에서 키 입력 없이 쓸 수 있습니다.)</p>
           <p class="settings-hint" id="settingsAccountLine" style="margin-top:-8px;"></p>
           <div class="row" style="margin-bottom:14px;">
@@ -1628,58 +1660,58 @@
 
   <div id="txModal" class="tx-modal-overlay hidden" aria-hidden="true">
     <div class="tx-modal-panel">
-      <div class="tx-modal-head">
-        <h2 id="txModalTitle">거래 추가</h2>
-        <button id="closeTxModalX" type="button">닫기</button>
-      </div>
       <form id="txForm">
+        <div class="tx-modal-head">
+          <h2 id="txModalTitle">거래 추가</h2>
+          <div class="tx-modal-actions">
+            <button type="button" id="txModalCancelBtn">취소</button>
+            <button type="button" id="txModalDeleteBtn" class="btn-danger hidden">삭제</button>
+            <button type="submit" class="btn-primary" id="txModalSaveBtn">저장</button>
+          </div>
+        </div>
         <input type="hidden" id="txId">
-        <div class="row">
-          <div class="field col-6">
-            <label for="txDate">날짜</label>
-            <input id="txDate" type="date" required>
+        <div class="tx-modal-fields">
+          <div class="tx-modal-row2">
+            <div class="tx-inline-field">
+              <label for="txDate">날짜</label>
+              <input id="txDate" type="date" required>
+            </div>
+            <div class="tx-inline-field">
+              <label for="txType">유형</label>
+              <select id="txType" required>
+                <option value="expense">지출</option>
+                <option value="income">수입</option>
+              </select>
+            </div>
           </div>
-          <div class="field col-6">
-            <label for="txType">유형</label>
-            <select id="txType" required>
-              <option value="expense">지출</option>
-              <option value="income">수입</option>
-            </select>
+          <div class="tx-modal-row2">
+            <div class="tx-inline-field">
+              <label for="txAmount">금액</label>
+              <input id="txAmount" type="text" inputmode="numeric" placeholder="0원" autocomplete="off" required>
+            </div>
+            <div class="tx-inline-field">
+              <label for="txAssetType">자산</label>
+              <select id="txAssetType" required></select>
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="field col-6">
-            <label for="txAmount">금액</label>
-            <input id="txAmount" type="text" inputmode="numeric" placeholder="0원" autocomplete="off" required>
+          <div class="tx-cat-inline-row category-select-row">
+            <div class="tx-inline-field">
+              <label for="catL1">대분류</label>
+              <select id="catL1" class="category-select" required></select>
+            </div>
+            <div class="tx-inline-field">
+              <label for="catL2">중분류</label>
+              <select id="catL2" class="category-select" required></select>
+            </div>
+            <div class="tx-inline-field">
+              <label for="catL3">소분류</label>
+              <select id="catL3" class="category-select" required></select>
+            </div>
           </div>
-          <div class="field col-6">
-            <label for="txAssetType">자산 종류</label>
-            <select id="txAssetType" required></select>
-          </div>
-        </div>
-        <div class="row category-select-row">
-          <div class="field col-4">
-            <label for="catL1">대분류</label>
-            <select id="catL1" class="category-select" required></select>
-          </div>
-          <div class="field col-4">
-            <label for="catL2">중분류</label>
-            <select id="catL2" class="category-select" required></select>
-          </div>
-          <div class="field col-4">
-            <label for="catL3">소분류</label>
-            <select id="catL3" class="category-select" required></select>
-          </div>
-        </div>
-        <div class="row">
-          <div class="field">
+          <div class="tx-inline-field tx-inline-field--memo">
             <label for="txMemo">메모</label>
             <input id="txMemo" type="text" maxlength="100">
           </div>
-        </div>
-        <div class="row tx-form-actions">
-          <button class="btn-primary" type="submit">저장</button>
-          <button id="closeTxModalBtn" type="button">취소</button>
         </div>
       </form>
     </div>
@@ -2140,12 +2172,22 @@
       const mm = String(d.getMinutes()).padStart(2, "0");
       return `${hh}:${mm}`;
     }
-    function dateWithWeekday(ymd) {
-      if (!ymd) return "날짜 미지정";
+    function formatDayCardDateMarkup(dateKey) {
+      if (!dateKey || dateKey === "날짜 미지정") {
+        return `<span class="txm-date txm-date--plain">날짜 미지정</span>`;
+      }
+      const ymd = normalizeTransactionDate(dateKey) || String(dateKey);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
+        return `<span class="txm-date txm-date--plain">${String(dateKey)}</span>`;
+      }
+      const d = new Date(`${ymd}T12:00:00`);
+      if (Number.isNaN(d.getTime())) {
+        return `<span class="txm-date txm-date--plain">${ymd}</span>`;
+      }
       const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
-      const d = new Date(`${ymd}T00:00:00`);
-      if (Number.isNaN(d.getTime())) return ymd;
-      return `${ymd} (${weekdays[d.getDay()]})`;
+      const w = d.getDay();
+      const cls = w === 0 ? "txm-date--sun" : w === 6 ? "txm-date--sat" : "txm-date--weekday";
+      return `<span class="txm-date ${cls}">${d.getDate()}일(${weekdays[w]})</span>`;
     }
     function monthKeyFromDate(v) {
       const ymd = normalizeTransactionDate(v);
@@ -2367,7 +2409,6 @@
       wrap.innerHTML = [...byDate.entries()].map(([date, list]) => {
         const income = list.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount || 0), 0);
         const expense = list.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount || 0), 0);
-        const balance = income - expense;
         const sortedList = [...list].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
         const items = sortedList.map((t) => {
           const desc = (t.memo || "").trim() || "—";
@@ -2377,21 +2418,21 @@
               <span class="pill ${t.type}">${t.type === "income" ? "수입" : "지출"}</span>
               <span class="txm-desc">${desc}</span>
               <span class="txm-amount ${t.type}">${formatCurrency(t.amount)}</span>
-              <div class="txm-actions">
-                <button type="button" data-edit="${t.id}">수정</button>
-                <button type="button" data-del="${t.id}" class="btn-danger">삭제</button>
-              </div>
+              <button type="button" class="txm-edit-btn" data-edit="${t.id}" aria-label="수정" title="수정">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+              </button>
             </div>
           `;
         }).join("");
         return `
           <div class="txm-day-block">
             <div class="txm-day-head">
-              <div class="txm-date">${dateWithWeekday(date)}</div>
+              ${formatDayCardDateMarkup(date)}
               <div class="txm-summary">
                 <span class="income">수입 ${formatCurrency(income)}</span>
                 <span class="expense">지출 ${formatCurrency(expense)}</span>
-                <span class="balance">잔액 ${formatCurrency(balance)}</span>
               </div>
             </div>
             <div class="txm-items">${items}</div>
@@ -2400,12 +2441,6 @@
       }).join("");
       wrap.querySelectorAll("[data-edit]").forEach((btn) => {
         btn.onclick = () => openTransactionModalForEdit(btn.getAttribute("data-edit"));
-      });
-      wrap.querySelectorAll("[data-del]").forEach((btn) => {
-        btn.onclick = () => {
-          const id = btn.getAttribute("data-del");
-          deleteTransactionRemote(id);
-        };
       });
     }
     function renderAssetSummaries() {
@@ -2472,6 +2507,8 @@
       document.getElementById("catL2").value = t.l2;
       document.getElementById("catL2").dispatchEvent(new Event("change"));
       document.getElementById("catL3").value = t.l3;
+      const delBtn = document.getElementById("txModalDeleteBtn");
+      if (delBtn) delBtn.classList.remove("hidden");
     }
 
     function resetTransactionForm() {
@@ -2484,6 +2521,8 @@
       if (reportMonth) reportMonth.value = ymNow;
       refreshCategorySelectors();
       refreshAssetTypeSelectors();
+      const delBtn = document.getElementById("txModalDeleteBtn");
+      if (delBtn) delBtn.classList.add("hidden");
     }
     function openTransactionModalForCreate() {
       resetTransactionForm();
@@ -2500,6 +2539,8 @@
     function closeTransactionModal() {
       document.getElementById("txModal").classList.add("hidden");
       document.getElementById("txModal").setAttribute("aria-hidden", "true");
+      const delBtn = document.getElementById("txModalDeleteBtn");
+      if (delBtn) delBtn.classList.add("hidden");
     }
 
     function renderDashboard() {
@@ -2689,37 +2730,26 @@
     }
 
     function initEvents() {
-      const brandBtn = document.getElementById("brandTitleBtn");
-      if (brandBtn) brandBtn.onclick = () => switchTab("dashboard");
-
       document.querySelectorAll(".tab-icon-btn").forEach((btn) => {
         btn.onclick = () => switchTab(btn.getAttribute("data-tab"));
       });
 
-      document.querySelectorAll("#headerSettingsMenu [data-tab]").forEach((btn) => {
-        btn.onclick = () => switchTab(btn.getAttribute("data-tab"));
-      });
-
-      const settingsBtn = document.getElementById("headerSettingsBtn");
-      const settingsMenu = document.getElementById("headerSettingsMenu");
-      if (settingsBtn && settingsMenu) {
-        settingsBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          if (settingsMenu.classList.contains("hidden")) {
-            settingsMenu.classList.remove("hidden");
-            settingsBtn.setAttribute("aria-expanded", "true");
-          } else {
-            closeHeaderSettingsMenu();
-          }
-        });
-      }
-      document.addEventListener("click", () => closeHeaderSettingsMenu());
+      const jc = document.getElementById("jumpTabCategories");
+      const ja = document.getElementById("jumpTabAssets");
+      if (jc) jc.onclick = () => switchTab("categories");
+      if (ja) ja.onclick = () => switchTab("assets");
 
       document.getElementById("openTxModalBtn").onclick = openTransactionModalForCreate;
       document.getElementById("prevMonthBtn").onclick = () => shiftMonth(-1);
       document.getElementById("nextMonthBtn").onclick = () => shiftMonth(1);
-      document.getElementById("closeTxModalBtn").onclick = closeTransactionModal;
-      document.getElementById("closeTxModalX").onclick = closeTransactionModal;
+      document.getElementById("txModalCancelBtn").onclick = closeTransactionModal;
+      document.getElementById("txModalDeleteBtn").onclick = async () => {
+        const id = document.getElementById("txId").value;
+        if (!id || !supabaseClient || !householdCode) return;
+        if (!confirm("이 거래를 삭제할까요?")) return;
+        const ok = await deleteTransactionRemote(id);
+        if (ok) closeTransactionModal();
+      };
       document.getElementById("txModal").onclick = (e) => {
         if (e.target.id === "txModal") closeTransactionModal();
       };
@@ -3059,9 +3089,10 @@
         if (error) {
           alert("거래 삭제에 실패했습니다.");
           console.error(error);
-          return;
+          return false;
         }
         await reloadFromSupabase();
+        return true;
       } finally {
         hideAppLoading();
       }
