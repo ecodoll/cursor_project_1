@@ -77,15 +77,25 @@
       min-width: 0;
     }
     .topbar .tx-month-nav {
-      flex: 1 1 auto;
-      min-width: 0;
+      flex: 0 0 auto;
+      width: 232px;
+      min-width: 232px;
+      max-width: 232px;
       margin: 0;
+    }
+    .topbar .tx-month-label {
+      min-width: 0;
+      flex: 1 1 auto;
+      overflow: visible;
+      text-overflow: clip;
+      white-space: nowrap;
     }
     .main-app-toolbar-icons {
       display: flex;
       align-items: center;
       gap: 6px;
       flex-shrink: 0;
+      margin-left: auto;
     }
     .topbar-head {
       display: flex;
@@ -325,11 +335,11 @@
       cursor: pointer;
       font-weight: 600;
     }
-    button:not(.tab-btn):not(.btn-primary):not(.btn-danger):not(.tab-icon-btn):not(.header-settings-btn):not(.brand-title-btn):not(.header-settings-menu-item):not(.btn-tx-add):not(.txm-edit-btn) {
+    button:not(.tab-btn):not(.btn-primary):not(.btn-danger):not(.tab-icon-btn):not(.header-settings-btn):not(.brand-title-btn):not(.header-settings-menu-item):not(.btn-tx-add):not(.txm-edit-btn):not(.tx-add-fab) {
       background: rgba(250, 245, 255, 0.95);
       border-color: rgba(168, 85, 247, 0.12);
     }
-    button:not(.tab-btn):not(.btn-primary):not(.btn-danger):not(.tab-icon-btn):not(.header-settings-btn):not(.brand-title-btn):not(.header-settings-menu-item):not(.btn-tx-add):not(.txm-edit-btn):hover {
+    button:not(.tab-btn):not(.btn-primary):not(.btn-danger):not(.tab-icon-btn):not(.header-settings-btn):not(.brand-title-btn):not(.header-settings-menu-item):not(.btn-tx-add):not(.txm-edit-btn):not(.tx-add-fab):hover {
       background: #fff;
       border-color: rgba(168, 85, 247, 0.22);
     }
@@ -480,14 +490,18 @@
     }
     .tx-inline-field {
       display: grid;
-      grid-template-columns: 52px minmax(0, 1fr);
+      grid-template-columns: 58px minmax(0, 1fr);
       gap: 8px 10px;
       align-items: center;
+      min-width: 0;
     }
     .tx-inline-field label {
       margin: 0;
       font-size: 13px;
       white-space: nowrap;
+      min-width: 0;
+      text-align: right;
+      justify-self: end;
     }
     .tx-inline-field input,
     .tx-inline-field select {
@@ -497,14 +511,19 @@
     .tx-cat-inline-row {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px 10px;
+      gap: 8px 8px;
       align-items: center;
+      min-width: 0;
     }
     .tx-cat-inline-row .tx-inline-field {
-      grid-template-columns: 44px minmax(0, 1fr);
+      grid-template-columns: 58px minmax(0, 1fr);
     }
     .tx-inline-field--memo {
-      grid-template-columns: 52px minmax(0, 1fr);
+      grid-template-columns: 58px minmax(0, 1fr);
+    }
+    .tx-cat-inline-row select.category-select {
+      padding: 9px 30px 9px 9px;
+      font-size: 15px;
     }
     @media (max-width: 560px) {
       .tx-modal-row2 { grid-template-columns: 1fr; }
@@ -624,12 +643,58 @@
       letter-spacing: -0.01em;
       font-variant-numeric: tabular-nums;
     }
-    .txm-day-block {
-      border: 2px solid rgba(30, 27, 75, 0.45);
-      border-radius: 18px;
-      background: #fff;
-      overflow: hidden;
-      margin-bottom: 12px;
+    .dashboard-month-summary {
+      margin: 0 0 14px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #fff 0%, #faf5ff 100%);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75) inset, 0 2px 10px rgba(124, 58, 237, 0.06);
+    }
+    .dashboard-month-summary .dms-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px 12px;
+      text-align: center;
+    }
+    .dashboard-month-summary .dms-labels {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+    }
+    .dashboard-month-summary .dms-values {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .dashboard-month-summary .dms-values .dms-income { color: var(--success); }
+    .dashboard-month-summary .dms-values .dms-expense { color: var(--danger); }
+    .dashboard-month-summary .dms-values .dms-balance { color: #1e1b4b; }
+    .tx-add-fab {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      border: none;
+      padding: 0;
+      background: var(--grad-cta);
+      color: #fff;
+      box-shadow: 0 8px 28px rgba(236, 72, 153, 0.45), 0 2px 10px rgba(91, 33, 135, 0.2);
+      cursor: pointer;
+      z-index: 95;
+    }
+    .tx-add-fab svg {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+    .tx-add-fab:active {
+      transform: scale(0.96);
     }
     .txm-day-head {
       display: grid;
@@ -939,9 +1004,10 @@
       box-shadow: var(--mu-shadow);
     }
     body.mobile-ui .topbar .tx-month-nav {
-      flex: 1 1 auto;
-      min-width: 0;
-      max-width: 100%;
+      flex: 0 0 auto;
+      width: 210px;
+      min-width: 210px;
+      max-width: 210px;
       padding: 6px 8px;
       gap: 6px;
     }
@@ -959,17 +1025,20 @@
       font-weight: 800;
       text-align: center;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      overflow: visible;
+      text-overflow: clip;
     }
-    body.mobile-ui .topbar .btn-tx-add {
-      width: 42px;
-      height: 42px;
-      min-width: 42px;
+    body.mobile-ui .topbar #openTxModalBtn {
+      display: none !important;
     }
-    body.mobile-ui .topbar .btn-tx-add svg {
-      width: 21px;
-      height: 21px;
+    body.mobile-ui[data-active-tab="dashboard"] #openTxModalFab {
+      display: flex;
+      position: fixed;
+      right: max(16px, env(safe-area-inset-right, 0px));
+      bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    }
+    body.mobile-ui[data-active-tab="dashboard"] .container {
+      padding-bottom: max(88px, calc(72px + env(safe-area-inset-bottom, 0px)));
     }
     body.mobile-ui .topbar-head {
       min-width: 0;
@@ -1448,14 +1517,6 @@
             <line x1="3" y1="18" x2="3.01" y2="18"></line>
           </svg>
         </button>
-        <button type="button" class="tab-icon-btn" data-tab="transactions" role="tab" aria-label="월 요약" title="월 요약">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="16" y1="2" x2="16" y2="6"></line>
-            <line x1="8" y1="2" x2="8" y2="6"></line>
-            <line x1="3" y1="10" x2="21" y2="10"></line>
-          </svg>
-        </button>
         <button type="button" class="tab-icon-btn" data-tab="reports" role="tab" aria-label="월간 리포트" title="월간 리포트">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="18" y1="20" x2="18" y2="10"></line>
@@ -1479,13 +1540,25 @@
     </div>
 
     <section id="tab-dashboard" class="tab-panel">
+      <div id="dashboardMonthSummary" class="dashboard-month-summary">
+        <div class="dms-row dms-labels">
+          <span>총 수입</span>
+          <span>총 지출</span>
+          <span>잔액</span>
+        </div>
+        <div class="dms-row dms-values">
+          <span id="dmsIncomeVal" class="dms-income">0원</span>
+          <span id="dmsExpenseVal" class="dms-expense">0원</span>
+          <span id="dmsBalanceVal" class="dms-balance" title="전월 말일까지 모든 자산의 누적 잔액 합계에, 이번 달 수입·지출을 반영한 값입니다.">0원</span>
+        </div>
+      </div>
       <div class="grid">
         <div class="col-12 card tx-dashboard-card">
           <div id="txMobileRows" class="tx-mobile-list"></div>
         </div>
         <div class="col-12 card">
           <h3>자산별 수입 · 지출 · 잔액</h3>
-          <p class="settings-hint" style="margin-top:2px;">자산명을 누르면 해당 자산 거래내역이 펼쳐집니다.</p>
+          <p class="settings-hint" style="margin-top:2px;">자산명을 누르면 해당 자산 거래내역이 펼쳐집니다. 잔액은 전월 말일까지 해당 자산 누적에, 이번 달 수입·지출을 반영한 값입니다.</p>
           <div id="assetSummaryRows" class="asset-summary-list"></div>
         </div>
       </div>
@@ -1656,6 +1729,12 @@
       </div>
     </section>
   </div>
+  <button type="button" id="openTxModalFab" class="tx-add-fab" aria-label="거래 추가" title="거래 추가">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></line>
+      <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></line>
+    </svg>
+  </button>
   </div>
 
   <div id="txModal" class="tx-modal-overlay hidden" aria-hidden="true">
@@ -2368,6 +2447,61 @@
         .slice()
         .sort((a, b) => normalizeTransactionDate(b.date).localeCompare(normalizeTransactionDate(a.date)));
     }
+
+    function lastDayOfPreviousMonth(ym) {
+      const [y, mo] = String(ym).split("-").map(Number);
+      const d = new Date(y, mo - 1, 0);
+      return localDateInputString(d);
+    }
+
+    function transactionAssetKey(t) {
+      const a = String(t && t.assetType != null ? t.assetType : "").trim();
+      return a || "미지정";
+    }
+
+    function collectAllAssetNames() {
+      const s = new Set(
+        [...(state.assetTypes || [])].map((a) => String(a || "").trim()).filter(Boolean)
+      );
+      state.transactions.forEach((t) => {
+        s.add(transactionAssetKey(t));
+      });
+      return [...s].sort((a, b) => a.localeCompare(b));
+    }
+
+    function balanceForAssetThroughDate(asset, ymdEnd) {
+      let inc = 0;
+      let exp = 0;
+      for (const t of state.transactions) {
+        const d = normalizeTransactionDate(t.date);
+        if (!d || d > ymdEnd) continue;
+        if (transactionAssetKey(t) !== asset) continue;
+        const amt = Number(t.amount || 0);
+        if (t.type === "income") inc += amt;
+        else if (t.type === "expense") exp += amt;
+      }
+      return inc - exp;
+    }
+
+    function cumulativeBalanceAllAssetsThroughDate(ymdEnd) {
+      return collectAllAssetNames().reduce((sum, a) => sum + balanceForAssetThroughDate(a, ymdEnd), 0);
+    }
+
+    function updateDashboardMonthSummaryStrip() {
+      const elI = document.getElementById("dmsIncomeVal");
+      const elE = document.getElementById("dmsExpenseVal");
+      const elB = document.getElementById("dmsBalanceVal");
+      if (!elI || !elE || !elB) return;
+      const monthRows = state.transactions.filter((t) => monthKeyFromDate(t.date) === selectedMonth);
+      const income = monthRows.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount || 0), 0);
+      const expense = monthRows.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount || 0), 0);
+      const prevEnd = lastDayOfPreviousMonth(selectedMonth);
+      const opening = cumulativeBalanceAllAssetsThroughDate(prevEnd);
+      const balance = opening + income - expense;
+      elI.textContent = formatCurrency(income);
+      elE.textContent = formatCurrency(expense);
+      elB.textContent = formatCurrency(balance);
+    }
     function updateMonthLabel() {
       const label = document.getElementById("monthLabel");
       if (!label) return;
@@ -2383,6 +2517,7 @@
       updateMonthLabel();
       renderTransactions();
       renderAssetSummaries();
+      updateDashboardMonthSummaryStrip();
     }
     function shiftMonth(delta) {
       const [y, m] = selectedMonth.split("-").map(Number);
@@ -2447,6 +2582,7 @@
       const wrap = document.getElementById("assetSummaryRows");
       if (!wrap) return;
       const rows = getFilteredTransactions();
+      const prevEnd = lastDayOfPreviousMonth(selectedMonth);
       const byAsset = new Map();
       rows.forEach((t) => {
         const key = (t.assetType || "미지정").trim() || "미지정";
@@ -2463,7 +2599,8 @@
         const txList = byAsset.get(asset);
         const income = txList.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount || 0), 0);
         const expense = txList.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount || 0), 0);
-        const balance = income - expense;
+        const opening = balanceForAssetThroughDate(asset, prevEnd);
+        const balance = opening + income - expense;
         const detailRows = txList
           .slice()
           .sort((a, b) => normalizeTransactionDate(b.date).localeCompare(normalizeTransactionDate(a.date)))
@@ -2484,7 +2621,7 @@
             <span class="sum-name">${asset}</span>
             <span class="sum-income">수입 ${formatCurrency(income)}</span>
             <span class="sum-expense">지출 ${formatCurrency(expense)}</span>
-            <span class="sum-balance">잔액 ${formatCurrency(balance)}</span>
+            <span class="sum-balance" title="전월 말일까지 해당 자산 누적 잔액에, 이번 달 수입·지출을 반영한 값입니다.">잔액 ${formatCurrency(balance)}</span>
             <span class="sum-arrow">▼</span>
           </summary>
           <div class="asset-summary-tx">${detailRows || '<div class="asset-summary-empty">거래내역 없음</div>'}</div>
@@ -2668,6 +2805,7 @@
       renderAssetSummaries();
       renderDashboard();
       buildReports();
+      updateDashboardMonthSummaryStrip();
     }
 
     const mobileUiMq = window.matchMedia("(max-width: 768px)");
@@ -2715,6 +2853,7 @@
 
     function switchTab(name) {
       if (!name) return;
+      document.body.setAttribute("data-active-tab", name);
       document.querySelectorAll(".tab-icon-btn").forEach((b) => {
         b.classList.toggle("active", b.getAttribute("data-tab") === name);
       });
@@ -2740,6 +2879,8 @@
       if (ja) ja.onclick = () => switchTab("assets");
 
       document.getElementById("openTxModalBtn").onclick = openTransactionModalForCreate;
+      const fab = document.getElementById("openTxModalFab");
+      if (fab) fab.onclick = openTransactionModalForCreate;
       document.getElementById("prevMonthBtn").onclick = () => shiftMonth(-1);
       document.getElementById("nextMonthBtn").onclick = () => shiftMonth(1);
       document.getElementById("txModalCancelBtn").onclick = closeTransactionModal;
@@ -3108,6 +3249,7 @@
         document.getElementById("reportMonth").value = ymNow;
         initAuthGateUI();
         initEvents();
+        document.body.setAttribute("data-active-tab", "dashboard");
         updateHeaderUserChrome();
         bindAmountInputFormatter();
         updateMonthLabel();
