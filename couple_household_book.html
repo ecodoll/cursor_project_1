@@ -1005,28 +1005,44 @@
     }
     body.mobile-ui .topbar .tx-month-nav {
       flex: 0 0 auto;
-      width: 210px;
-      min-width: 210px;
-      max-width: 210px;
-      padding: 6px 8px;
-      gap: 6px;
+      width: 140px;
+      min-width: 140px;
+      max-width: 140px;
+      padding: 5px 6px;
+      gap: 4px;
     }
     body.mobile-ui .topbar .tx-month-arrow {
-      width: 32px;
-      height: 32px;
-      min-height: 32px;
-      font-size: 17px;
+      width: 26px;
+      height: 26px;
+      min-height: 26px;
+      font-size: 14px;
       flex-shrink: 0;
     }
     body.mobile-ui .topbar .tx-month-label {
       min-width: 0;
       flex: 1 1 auto;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 800;
       text-align: center;
       white-space: nowrap;
-      overflow: visible;
-      text-overflow: clip;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -0.04em;
+    }
+    body.mobile-ui .topbar .main-app-toolbar-icons {
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    body.mobile-ui .topbar .main-app-toolbar-icons .tab-icon-btn {
+      width: 38px;
+      height: 38px;
+      min-width: 38px;
+      min-height: 38px;
+      border-radius: 11px;
+    }
+    body.mobile-ui .topbar .main-app-toolbar-icons .tab-icon-btn svg {
+      width: 19px;
+      height: 19px;
     }
     body.mobile-ui .topbar #openTxModalBtn {
       display: none !important;
@@ -1119,6 +1135,17 @@
     body.mobile-ui button {
       border-radius: 14px;
       touch-action: manipulation;
+    }
+    body.mobile-ui button.tx-add-fab {
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      min-width: 56px;
+      min-height: 56px;
+      padding: 0;
+      aspect-ratio: 1;
+      flex-shrink: 0;
+      box-sizing: border-box;
     }
     body.mobile-ui input,
     body.mobile-ui select {
