@@ -1,0 +1,22 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="가계부">
+  <defs>
+    <linearGradient id="bg" x1="8%" y1="6%" x2="92%" y2="94%">
+      <stop offset="0%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="page" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fffefb"/>
+      <stop offset="100%" stop-color="#fdf4ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g transform="translate(256 268)">
+    <rect x="-118" y="-108" width="236" height="196" rx="22" fill="url(#page)" stroke="#f5d0fe" stroke-width="6"/>
+    <path d="M-58 -108 L-58 88" stroke="#e9d5ff" stroke-width="5" stroke-linecap="round"/>
+    <path d="M-78 -52 L58 -52 M-78 -8 L42 -8 M-78 36 L52 36" stroke="#c4b5fd" stroke-width="7" stroke-linecap="round"/>
+    <path d="M-22 -138 C-22 -152 -6 -158 6 -148 C18 -158 34 -152 34 -138 C34 -122 6 -104 6 -104 C6 -104 -22 -122 -22 -138 Z" fill="#fda4af" stroke="#fff" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M18 -138 C18 -152 34 -158 46 -148 C58 -158 74 -152 74 -138 C74 -122 46 -104 46 -104 C46 -104 18 -122 18 -138 Z" fill="#f9a8d4" stroke="#fff" stroke-width="5" stroke-linejoin="round"/>
+    <circle cx="0" cy="52" r="34" fill="#7c3aed" opacity="0.12"/>
+    <text x="0" y="64" text-anchor="middle" font-family="system-ui, sans-serif" font-size="52" font-weight="800" fill="#7c3aed">&#8361;</text>
+  </g>
+</svg>
