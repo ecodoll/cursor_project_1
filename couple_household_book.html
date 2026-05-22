@@ -245,6 +245,76 @@
       background: rgba(250, 245, 255, 0.98);
       border-color: rgba(168, 85, 247, 0.4);
     }
+    .header-settings-btn.active {
+      background: var(--grad-cta);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: var(--grad-cta-shadow);
+    }
+    .header-settings-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .cat-add-set {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 10px;
+      margin-bottom: 12px;
+    }
+    .cat-inline-label {
+      font-weight: 650;
+      font-size: 14px;
+      color: #6b21a8;
+      white-space: nowrap;
+    }
+    .cat-add-set input {
+      flex: 1 1 100px;
+      min-width: 72px;
+      max-width: 220px;
+    }
+    .cat-list-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .cat-list-head h2 { margin: 0; }
+    .cat-modal-panel {
+      width: min(560px, 96vw);
+      padding: 18px 20px 20px;
+    }
+    .cat-modal-panel h2 {
+      margin: 0 0 14px;
+      font-size: 1.1rem;
+      text-align: center;
+    }
+    .cat-modal-panel .cat-add-set {
+      margin-bottom: 18px;
+      justify-content: center;
+    }
+    .cat-modal-panel .cat-add-set input {
+      max-width: none;
+      flex: 1 1 0;
+    }
+    .cat-modal-footer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding-top: 4px;
+    }
+    .cat-modal-footer button {
+      min-width: 88px;
+      padding: 10px 18px;
+    }
+    table.cat-list-table { width: 100%; }
+    table.cat-list-table th.actions-col,
+    table.cat-list-table td.actions {
+      text-align: right;
+      white-space: nowrap;
+    }
+    table.cat-list-table td.actions button {
+      margin-left: 6px;
+    }
     .header-settings-dropdown {
       position: absolute;
       right: 0;
@@ -1437,10 +1507,27 @@
       grid-template-columns: 1fr 52px;
       gap: 6px;
     }
-    body.mobile-ui #catForm > button.btn-primary {
-      width: 100%;
-      margin-top: 10px;
+    body.mobile-ui .cat-add-set {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px 10px;
+      align-items: center;
+    }
+    body.mobile-ui .cat-add-set input {
+      max-width: none;
+    }
+    body.mobile-ui .cat-modal-panel .cat-add-set {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      justify-content: stretch;
+    }
+    body.mobile-ui .cat-modal-footer button {
+      flex: 1;
       min-height: 48px;
+      max-width: 160px;
+    }
+    body.mobile-ui table.cat-list-table thead {
+      display: table-header-group;
     }
     body.mobile-ui #connectBtn {
       width: 100%;
@@ -1561,12 +1648,19 @@
             <line x1="6" y1="20" x2="6" y2="14"></line>
           </svg>
         </button>
-        <button type="button" class="tab-icon-btn" data-tab="settings" role="tab" aria-label="접속 설정" title="접속 설정">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-          </svg>
-        </button>
+        <div class="header-settings-wrap">
+          <button type="button" id="headerSettingsBtn" class="header-settings-btn" aria-label="설정" title="설정" aria-expanded="false" aria-haspopup="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+          <div id="headerSettingsMenu" class="header-settings-dropdown hidden" role="menu" aria-label="설정 메뉴">
+            <button type="button" class="header-settings-menu-item" data-settings-tab="categories" role="menuitem">카테고리</button>
+            <button type="button" class="header-settings-menu-item" data-settings-tab="assets" role="menuitem">자산 종류</button>
+            <button type="button" class="header-settings-menu-item" data-settings-tab="settings" role="menuitem">접속 설정</button>
+          </div>
+        </div>
       </div>
       <button type="button" id="openTxModalBtn" class="btn-tx-add" aria-label="거래 추가" title="거래 추가">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
@@ -1636,31 +1730,19 @@
 
     <section id="tab-categories" class="tab-panel hidden">
       <div class="grid">
-        <div class="col-6 card">
-          <h2>카테고리 추가</h2>
-          <form id="catForm">
-            <div class="row">
-              <div class="field col-4">
-                <label for="newL1">대분류</label>
-                <input id="newL1" placeholder="예: 생활비" required>
-              </div>
-              <div class="field col-4">
-                <label for="newL2">중분류</label>
-                <input id="newL2" placeholder="예: 식비" required>
-              </div>
-              <div class="field col-4">
-                <label for="newL3">소분류</label>
-                <input id="newL3" placeholder="예: 외식" required>
-              </div>
-            </div>
-            <button class="btn-primary" type="submit">카테고리 추가</button>
-          </form>
-        </div>
-        <div class="col-6 card">
-          <h2>카테고리 목록</h2>
-          <table class="mob-stack-table">
+        <div class="col-12 card">
+          <div class="cat-list-head">
+            <h2>카테고리 목록</h2>
+            <button type="button" class="btn-primary" id="openCatModalBtn">추가</button>
+          </div>
+          <table class="mob-stack-table cat-list-table">
             <thead>
-              <tr><th>대분류</th><th>중분류</th><th>소분류</th><th>작업</th></tr>
+              <tr>
+                <th>대분류</th>
+                <th>중분류</th>
+                <th>소분류</th>
+                <th class="actions-col">관리</th>
+              </tr>
             </thead>
             <tbody id="catRows"></tbody>
           </table>
@@ -1735,10 +1817,6 @@
       <div class="grid">
         <div class="col-12 card">
           <h2>접속 설정</h2>
-          <div class="settings-jump-row" style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;">
-            <button type="button" class="tab-btn" id="jumpTabCategories">카테고리</button>
-            <button type="button" class="tab-btn" id="jumpTabAssets">자산 종류</button>
-          </div>
           <p class="settings-hint">로그인한 계정에 가족 코드가 연결되어 있으며, URL·Anon Key는 이 브라우저에 저장됩니다. 공용 PC에서는 로그아웃 후 이용해 주세요. (배포본에 기본 URL·키를 넣어 두면 이 탭에서 키 입력 없이 쓸 수 있습니다.)</p>
           <p class="settings-hint" id="settingsAccountLine" style="margin-top:-8px;"></p>
           <div class="row" style="margin-bottom:14px;">
@@ -1772,6 +1850,27 @@
       <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></line>
     </svg>
   </button>
+  </div>
+
+  <div id="catModal" class="tx-modal-overlay hidden" aria-hidden="true">
+    <div class="tx-modal-panel cat-modal-panel" role="dialog" aria-modal="true" aria-labelledby="catModalTitle">
+      <form id="catForm">
+        <h2 id="catModalTitle">카테고리 추가</h2>
+        <div class="cat-add-set">
+          <span class="cat-inline-label" id="lblNewL1">대분류</span>
+          <input id="newL1" placeholder="예: 생활비" aria-labelledby="lblNewL1" required>
+          <span class="cat-inline-label" id="lblNewL2">중분류</span>
+          <input id="newL2" placeholder="예: 식비" aria-labelledby="lblNewL2" required>
+          <span class="cat-inline-label" id="lblNewL3">소분류</span>
+          <input id="newL3" placeholder="예: 외식" aria-labelledby="lblNewL3" required>
+        </div>
+        <input type="hidden" id="catEditId" value="">
+        <div class="cat-modal-footer">
+          <button type="button" id="catModalCancelBtn">취소</button>
+          <button type="submit" class="btn-primary" id="catModalSaveBtn">저장</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <div id="txModal" class="tx-modal-overlay hidden" aria-hidden="true">
@@ -2448,31 +2547,91 @@
       };
     }
 
+    function sortCategories(list) {
+      return [...list].sort((a, b) => {
+        const byL1 = (a.l1 || "").localeCompare(b.l1 || "", "ko");
+        if (byL1 !== 0) return byL1;
+        const byL2 = (a.l2 || "").localeCompare(b.l2 || "", "ko");
+        if (byL2 !== 0) return byL2;
+        return (a.l3 || "").localeCompare(b.l3 || "", "ko");
+      });
+    }
+
+    function resetCategoryForm() {
+      const form = document.getElementById("catForm");
+      if (form) form.reset();
+      const editId = document.getElementById("catEditId");
+      if (editId) editId.value = "";
+      const title = document.getElementById("catModalTitle");
+      if (title) title.textContent = "카테고리 추가";
+    }
+
+    function openCategoryModal() {
+      const modal = document.getElementById("catModal");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      modal.setAttribute("aria-hidden", "false");
+      const first = document.getElementById("newL1");
+      if (first) setTimeout(() => first.focus(), 50);
+    }
+
+    function closeCategoryModal() {
+      const modal = document.getElementById("catModal");
+      if (!modal) return;
+      modal.classList.add("hidden");
+      modal.setAttribute("aria-hidden", "true");
+      resetCategoryForm();
+    }
+
+    function openCategoryModalForCreate() {
+      resetCategoryForm();
+      openCategoryModal();
+    }
+
+    function beginCategoryEdit(cat) {
+      if (!cat) return;
+      document.getElementById("newL1").value = cat.l1 || "";
+      document.getElementById("newL2").value = cat.l2 || "";
+      document.getElementById("newL3").value = cat.l3 || "";
+      document.getElementById("catEditId").value = cat.id || "";
+      const title = document.getElementById("catModalTitle");
+      if (title) title.textContent = "카테고리 수정";
+      openCategoryModal();
+    }
+
     function renderCategoryRows() {
       const tbody = document.getElementById("catRows");
       tbody.innerHTML = "";
-      state.categories
-        .sort((a, b) => `${a.l1}|${a.l2}|${a.l3}`.localeCompare(`${b.l1}|${b.l2}|${b.l3}`))
-        .forEach((c) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td data-label="대분류">${c.l1}</td>
-            <td data-label="중분류">${c.l2}</td>
-            <td data-label="소분류">${c.l3}</td>
-            <td class="actions" data-label="관리">
-              <button data-del-cat="${c.id}" class="btn-danger">삭제</button>
-            </td>`;
-          tbody.appendChild(tr);
-        });
+      sortCategories(state.categories).forEach((c) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td data-label="대분류">${c.l1}</td>
+          <td data-label="중분류">${c.l2}</td>
+          <td data-label="소분류">${c.l3}</td>
+          <td class="actions" data-label="관리">
+            <button type="button" data-edit-cat="${c.id}">수정</button>
+            <button type="button" data-del-cat="${c.id}" class="btn-danger">삭제</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll("[data-edit-cat]").forEach((btn) => {
+        btn.onclick = () => {
+          const id = btn.getAttribute("data-edit-cat");
+          const cat = state.categories.find((c) => c.id === id);
+          beginCategoryEdit(cat);
+        };
+      });
       tbody.querySelectorAll("[data-del-cat]").forEach((btn) => {
         btn.onclick = () => {
           const id = btn.getAttribute("data-del-cat");
-          const cat = state.categories.find((c) => c.id === id);
           const linked = state.transactions.some((t) => t.categoryId === id);
           if (linked) {
             alert("이 카테고리는 거래내역에서 사용 중이라 삭제할 수 없습니다.");
             return;
           }
+          if (!confirm("이 카테고리를 삭제할까요?")) return;
+          const editId = document.getElementById("catEditId");
+          if (editId && editId.value === id) closeCategoryModal();
           deleteCategoryRemote(id);
         };
       });
@@ -2891,9 +3050,14 @@
     function switchTab(name) {
       if (!name) return;
       document.body.setAttribute("data-active-tab", name);
+      const mainTabs = new Set(["dashboard", "reports"]);
       document.querySelectorAll(".tab-icon-btn").forEach((b) => {
-        b.classList.toggle("active", b.getAttribute("data-tab") === name);
+        b.classList.toggle("active", mainTabs.has(name) && b.getAttribute("data-tab") === name);
       });
+      const settingsBtn = document.getElementById("headerSettingsBtn");
+      if (settingsBtn) {
+        settingsBtn.classList.toggle("active", ["categories", "assets", "settings"].includes(name));
+      }
       document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
       const panel = document.getElementById(`tab-${name}`);
       if (panel) panel.classList.remove("hidden");
@@ -2910,10 +3074,23 @@
         btn.onclick = () => switchTab(btn.getAttribute("data-tab"));
       });
 
-      const jc = document.getElementById("jumpTabCategories");
-      const ja = document.getElementById("jumpTabAssets");
-      if (jc) jc.onclick = () => switchTab("categories");
-      if (ja) ja.onclick = () => switchTab("assets");
+      const settingsBtn = document.getElementById("headerSettingsBtn");
+      const settingsMenu = document.getElementById("headerSettingsMenu");
+      if (settingsBtn && settingsMenu) {
+        settingsBtn.onclick = (e) => {
+          e.stopPropagation();
+          const willOpen = settingsMenu.classList.contains("hidden");
+          settingsMenu.classList.toggle("hidden");
+          settingsBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+        };
+        document.querySelectorAll("[data-settings-tab]").forEach((item) => {
+          item.onclick = () => switchTab(item.getAttribute("data-settings-tab"));
+        });
+        document.addEventListener("click", (e) => {
+          const wrap = settingsBtn.closest(".header-settings-wrap");
+          if (wrap && !wrap.contains(e.target)) closeHeaderSettingsMenu();
+        });
+      }
 
       document.getElementById("openTxModalBtn").onclick = openTransactionModalForCreate;
       const fab = document.getElementById("openTxModalFab");
@@ -2931,9 +3108,16 @@
       document.getElementById("txModal").onclick = (e) => {
         if (e.target.id === "txModal") closeTransactionModal();
       };
+      const openCatBtn = document.getElementById("openCatModalBtn");
+      if (openCatBtn) openCatBtn.onclick = openCategoryModalForCreate;
+      document.getElementById("catModalCancelBtn").onclick = closeCategoryModal;
+      document.getElementById("catModal").onclick = (e) => {
+        if (e.target.id === "catModal") closeCategoryModal();
+      };
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           closeTransactionModal();
+          closeCategoryModal();
           closeHeaderSettingsMenu();
         }
       });
@@ -2978,13 +3162,17 @@
         const l1 = document.getElementById("newL1").value.trim();
         const l2 = document.getElementById("newL2").value.trim();
         const l3 = document.getElementById("newL3").value.trim();
-        const exists = state.categories.some((c) => c.l1 === l1 && c.l2 === l2 && c.l3 === l3);
+        const editId = document.getElementById("catEditId").value.trim();
         if (!l1 || !l2 || !l3) return;
+        const exists = state.categories.some(
+          (c) => c.l1 === l1 && c.l2 === l2 && c.l3 === l3 && c.id !== editId
+        );
         if (exists) {
           alert("이미 존재하는 카테고리입니다.");
           return;
         }
-        addCategoryRemote({ l1, l2, l3, household_code: householdCode });
+        if (editId) updateCategoryRemote(editId, { l1, l2, l3 });
+        else addCategoryRemote({ l1, l2, l3, household_code: householdCode });
       };
 
       document.getElementById("assetForm").onsubmit = (e) => {
@@ -3158,7 +3346,32 @@
         console.error(error);
         return;
       }
-      document.getElementById("catForm").reset();
+      closeCategoryModal();
+      await reloadFromSupabase();
+    }
+
+    async function updateCategoryRemote(id, { l1, l2, l3 }) {
+      const { error } = await supabaseClient
+        .from("categories")
+        .update({ l1, l2, l3 })
+        .eq("id", id)
+        .eq("household_code", householdCode);
+      if (error) {
+        alert("카테고리 수정에 실패했습니다.");
+        console.error(error);
+        return;
+      }
+      const { error: txError } = await supabaseClient
+        .from("transactions")
+        .update({ l1, l2, l3 })
+        .eq("household_code", householdCode)
+        .eq("category_id", id);
+      if (txError) {
+        alert("거래내역의 카테고리 동기화에 실패했습니다.");
+        console.error(txError);
+        return;
+      }
+      closeCategoryModal();
       await reloadFromSupabase();
     }
 
