@@ -1952,6 +1952,10 @@
               <select id="txAssetType" required></select>
             </div>
           </div>
+          <div class="tx-inline-field tx-inline-field--memo">
+            <label for="txMemo">메모</label>
+            <input id="txMemo" type="text" maxlength="100" autocomplete="off">
+          </div>
           <div class="tx-cat-inline-row category-select-row">
             <div class="tx-inline-field">
               <label for="catL1">대분류</label>
@@ -1965,10 +1969,6 @@
               <label for="catL3">소분류</label>
               <select id="catL3" class="category-select" required></select>
             </div>
-          </div>
-          <div class="tx-inline-field tx-inline-field--memo">
-            <label for="txMemo">메모</label>
-            <input id="txMemo" type="text" maxlength="100">
           </div>
         </div>
       </form>
@@ -1984,6 +1984,17 @@
     const KRW = new Intl.NumberFormat("ko-KR");
     const today = new Date();
     const ymNow = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+
+    /** 메모 키워드 → 카테고리 (소분류는 DB에 있으면 우선, 없으면 l3Candidates 순서로 대체) */
+    const CATEGORY_MEMO_HINTS = [
+      { keywords: ["고기", "육류", "삼겹살", "갈비", "돼지고기", "소고기", "한우", "돼지"], l1: "생활비", l2: "식비", l3: "주식", l3Candidates: ["주식", "장보기", "외식"] },
+      { keywords: ["장보기", "마트", "이마트", "쿠팡", "배송"], l1: "생활비", l2: "식비", l3: "장보기" },
+      { keywords: ["외식", "배달", "치킨", "피자", "카페", "커피"], l1: "생활비", l2: "식비", l3: "외식" },
+      { keywords: ["지하철", "버스", "택시", "기름", "주유"], l1: "생활비", l2: "교통", l3: "대중교통" },
+      { keywords: ["월세", "관리비", "전기", "가스", "수도"], l1: "고정비", l2: "주거", l3: "월세/관리비" },
+      { keywords: ["휴대폰", "통신", "인터넷"], l1: "고정비", l2: "통신", l3: "휴대폰" },
+      { keywords: ["월급", "급여", "보너스"], l1: "수입", l2: "근로소득", l3: "월급" }
+    ];
 
     const defaultCategories = [
       { l1: "생활비", l2: "식비", l3: "장보기" },
@@ -2012,6 +2023,8 @@
     let lastClientKey = "";
     let currentUserEmail = "";
     let selectedMonth = ymNow;
+    let memoCategorySuggestTimer = null;
+    let memoCategoryLearnMap = {};
     const txAmountEl = () => document.getElementById("txAmount");
 
     let appLoadingCount = 0;
@@ -2066,6 +2079,179 @@
       if (name) nextMap[householdCode] = name;
       else delete nextMap[householdCode];
       saveConfig({ defaultAssetByHousehold: nextMap });
+    }
+
+    const MEMO_LEARN_STOPWORDS = new Set([
+      "구매", "결제", "지출", "입금", "송금", "이체", "출금", "입금",
+      "오늘", "어제", "내일", "이번", "저번", "샀음", "팔음", "지불", "카드", "현금"
+    ]);
+
+    function extractMemoKeywords(memo) {
+      const text = String(memo || "").trim();
+      if (!text) return [];
+      const keys = new Set();
+      text.split(/[\s,./·\-+:]+/).forEach((part) => {
+        const tok = part.trim();
+        if (tok.length >= 2 && !MEMO_LEARN_STOPWORDS.has(tok)) keys.add(tok);
+      });
+      if (text.length >= 2 && text.length <= 40 && !MEMO_LEARN_STOPWORDS.has(text)) keys.add(text);
+      return [...keys];
+    }
+
+    function buildMemoLearnMapFromRows(rows) {
+      const map = {};
+      (rows || []).forEach((r) => {
+        const kw = String(r.keyword || "").trim();
+        if (!kw) return;
+        map[kw] = {
+          l1: r.l1,
+          l2: r.l2,
+          l3: r.l3,
+          categoryId: r.category_id || null,
+          updatedAt: r.updated_at ? new Date(r.updated_at).getTime() : Date.now()
+        };
+      });
+      return map;
+    }
+
+    function getMemoCategoryLearnMapFromConfig() {
+      if (!householdCode) return {};
+      const cfg = loadConfig() || {};
+      const all = cfg.memoCategoryLearnByHousehold || {};
+      return all[householdCode] || {};
+    }
+
+    function clearMemoCategoryLearnFromConfig() {
+      if (!householdCode) return;
+      const cfg = loadConfig() || {};
+      const all = { ...(cfg.memoCategoryLearnByHousehold || {}) };
+      delete all[householdCode];
+      saveConfig({ memoCategoryLearnByHousehold: all });
+    }
+
+    function getMemoCategoryLearnMap() {
+      return memoCategoryLearnMap;
+    }
+
+    async function migrateLocalMemoCategoryLearnToSupabase() {
+      const local = getMemoCategoryLearnMapFromConfig();
+      const keywords = Object.keys(local);
+      if (!keywords.length || !supabaseClient || !householdCode) return;
+      const rows = keywords.map((kw) => ({
+        household_code: householdCode,
+        keyword: kw,
+        l1: local[kw].l1,
+        l2: local[kw].l2,
+        l3: local[kw].l3,
+        category_id: local[kw].categoryId || null,
+        updated_at: local[kw].updatedAt
+          ? new Date(local[kw].updatedAt).toISOString()
+          : new Date().toISOString()
+      }));
+      const { error } = await supabaseClient
+        .from("memo_category_learn")
+        .upsert(rows, { onConflict: "household_code,keyword" });
+      if (error) {
+        console.warn("memo_category_learn migration failed", error);
+        memoCategoryLearnMap = { ...local };
+        return;
+      }
+      clearMemoCategoryLearnFromConfig();
+      memoCategoryLearnMap = { ...local };
+    }
+
+    async function loadMemoCategoryLearnFromSupabase() {
+      if (!supabaseClient || !householdCode) {
+        memoCategoryLearnMap = {};
+        return;
+      }
+      const { data, error } = await supabaseClient
+        .from("memo_category_learn")
+        .select("keyword,l1,l2,l3,category_id,updated_at")
+        .eq("household_code", householdCode);
+      if (error) {
+        console.warn("memo_category_learn load failed", error);
+        memoCategoryLearnMap = { ...getMemoCategoryLearnMapFromConfig() };
+        return;
+      }
+      if (!data || !data.length) {
+        await migrateLocalMemoCategoryLearnToSupabase();
+        const { data: again, error: againErr } = await supabaseClient
+          .from("memo_category_learn")
+          .select("keyword,l1,l2,l3,category_id,updated_at")
+          .eq("household_code", householdCode);
+        if (againErr) {
+          memoCategoryLearnMap = { ...getMemoCategoryLearnMapFromConfig() };
+          return;
+        }
+        memoCategoryLearnMap = buildMemoLearnMapFromRows(again);
+        return;
+      }
+      memoCategoryLearnMap = buildMemoLearnMapFromRows(data);
+    }
+
+    function resolveLearnedCategoryEntry(entry) {
+      if (!entry) return null;
+      if (entry.categoryId) {
+        const byId = state.categories.find((c) => c.id === entry.categoryId);
+        if (byId) return byId;
+      }
+      return state.categories.find(
+        (c) => c.l1 === entry.l1 && c.l2 === entry.l2 && c.l3 === entry.l3
+      ) || null;
+    }
+
+    function findLearnedCategoryFromMemo(memo) {
+      const text = String(memo || "").trim();
+      if (!text) return null;
+      const map = getMemoCategoryLearnMap();
+      const keywords = Object.keys(map).sort((a, b) => b.length - a.length);
+      for (const kw of keywords) {
+        if (!kw || kw.length < 2 || !text.includes(kw)) continue;
+        const cat = resolveLearnedCategoryEntry(map[kw]);
+        if (cat) return cat;
+      }
+      return null;
+    }
+
+    async function rememberMemoCategoryMapping(memo, l1, l2, l3, categoryId) {
+      if (!householdCode || !l1 || !l2 || !l3) return;
+      const keywords = extractMemoKeywords(memo);
+      if (!keywords.length) return;
+      const entry = {
+        l1,
+        l2,
+        l3,
+        categoryId: categoryId || null,
+        updatedAt: Date.now()
+      };
+      keywords.forEach((kw) => {
+        memoCategoryLearnMap[kw] = entry;
+      });
+      if (!supabaseClient) {
+        const cfg = loadConfig() || {};
+        const all = { ...(cfg.memoCategoryLearnByHousehold || {}) };
+        const map = { ...(all[householdCode] || {}) };
+        keywords.forEach((kw) => {
+          map[kw] = entry;
+        });
+        all[householdCode] = map;
+        saveConfig({ memoCategoryLearnByHousehold: all });
+        return;
+      }
+      const rows = keywords.map((kw) => ({
+        household_code: householdCode,
+        keyword: kw,
+        l1,
+        l2,
+        l3,
+        category_id: categoryId || null,
+        updated_at: new Date().toISOString()
+      }));
+      const { error } = await supabaseClient
+        .from("memo_category_learn")
+        .upsert(rows, { onConflict: "household_code,keyword" });
+      if (error) console.warn("memo_category_learn save failed", error);
     }
     function parseCurrencyInput(value) {
       const digits = String(value || "").replace(/[^\d]/g, "");
@@ -2388,6 +2574,7 @@
       state.categories = [];
       state.assetTypes = [];
       state.transactions = [];
+      memoCategoryLearnMap = {};
       const line = document.getElementById("settingsAccountLine");
       if (line) line.textContent = "";
       updateHeaderUserChrome();
@@ -2556,26 +2743,7 @@
       return l1Map;
     }
 
-    function refreshCategorySelectors() {
-      const l1 = document.getElementById("catL1");
-      const l2 = document.getElementById("catL2");
-      const l3 = document.getElementById("catL3");
-      const tree = buildCategoryHierarchy();
-      const l1Keys = [...tree.keys()];
-      if (!l1Keys.length) {
-        setOptions(l1, []);
-        setOptions(l2, []);
-        setOptions(l3, []);
-        return;
-      }
-      setOptions(l1, l1Keys);
-      const firstL1 = l1.value || l1Keys[0];
-      const l2Keys = firstL1 ? [...tree.get(firstL1).keys()] : [];
-      setOptions(l2, l2Keys);
-      const firstL2 = l2.value || l2Keys[0];
-      const l3Keys = (firstL1 && firstL2) ? [...tree.get(firstL1).get(firstL2)] : [];
-      setOptions(l3, l3Keys);
-
+    function wireCategoryCascade(l1, l2, l3, tree) {
       l1.onchange = () => {
         const innerL2 = [...(tree.get(l1.value)?.keys() || [])];
         setOptions(l2, innerL2);
@@ -2588,6 +2756,124 @@
           : [];
         setOptions(l3, innerL3);
       };
+    }
+
+    function applyCategoryToSelectors(cat) {
+      if (!cat) return;
+      const l1 = document.getElementById("catL1");
+      const l2 = document.getElementById("catL2");
+      const l3 = document.getElementById("catL3");
+      if (!l1 || !l2 || !l3) return;
+      const tree = buildCategoryHierarchy();
+      if (!tree.has(cat.l1)) return;
+      const l1Keys = [...tree.keys()];
+      setOptions(l1, l1Keys);
+      l1.value = cat.l1;
+      const l2Keys = [...tree.get(cat.l1).keys()];
+      setOptions(l2, l2Keys);
+      l2.value = cat.l2;
+      const l3Keys = [...tree.get(cat.l1).get(cat.l2)];
+      setOptions(l3, l3Keys);
+      l3.value = cat.l3;
+      wireCategoryCascade(l1, l2, l3, tree);
+    }
+
+    function resolveCategoryFromHint(hint) {
+      const pool = state.categories.filter((c) => c.l1 === hint.l1 && c.l2 === hint.l2);
+      if (!pool.length) return null;
+      if (hint.l3) {
+        const exact = pool.find((c) => c.l3 === hint.l3);
+        if (exact) return exact;
+      }
+      const candidates = hint.l3Candidates || (hint.l3 ? [hint.l3] : []);
+      for (const name of candidates) {
+        const found = pool.find((c) => c.l3 === name);
+        if (found) return found;
+      }
+      return pool[0];
+    }
+
+    function scoreCategoryMatch(memo, category) {
+      const text = memo.trim();
+      if (!text) return 0;
+      let score = 0;
+      const { l1, l2, l3 } = category;
+      if (l3 && l3.length >= 2 && text.includes(l3)) score = Math.max(score, 120 + l3.length);
+      if (l2 && l2.length >= 2 && text.includes(l2)) score = Math.max(score, 70 + l2.length);
+      if (l1 && l1.length >= 2 && text.includes(l1)) score = Math.max(score, 40 + l1.length);
+      const tokens = text.split(/[\s,./·]+/).filter((t) => t.length >= 2);
+      for (const tok of tokens) {
+        if (l3 && (l3.includes(tok) || tok.includes(l3))) score = Math.max(score, 100 + tok.length);
+        if (l2 && (l2.includes(tok) || tok.includes(l2))) score = Math.max(score, 55 + tok.length);
+        if (l1 && (l1.includes(tok) || tok.includes(l1))) score = Math.max(score, 35 + tok.length);
+      }
+      return score;
+    }
+
+    function suggestCategoryFromMemo(memo) {
+      const text = (memo || "").trim();
+      if (!text || !state.categories.length) return null;
+
+      const learned = findLearnedCategoryFromMemo(text);
+      if (learned) return learned;
+
+      for (const hint of CATEGORY_MEMO_HINTS) {
+        if (hint.keywords.some((kw) => kw && text.includes(kw))) {
+          const resolved = resolveCategoryFromHint(hint);
+          if (resolved) return resolved;
+        }
+      }
+
+      let best = null;
+      let bestScore = 0;
+      for (const c of state.categories) {
+        const s = scoreCategoryMatch(text, c);
+        if (s > bestScore) {
+          bestScore = s;
+          best = c;
+        }
+      }
+      return bestScore >= 35 ? best : null;
+    }
+
+    function scheduleCategorySuggestFromMemo() {
+      clearTimeout(memoCategorySuggestTimer);
+      memoCategorySuggestTimer = setTimeout(() => {
+        const modal = document.getElementById("txModal");
+        if (!modal || modal.classList.contains("hidden")) return;
+        const memo = document.getElementById("txMemo")?.value || "";
+        const cat = suggestCategoryFromMemo(memo);
+        if (cat) applyCategoryToSelectors(cat);
+      }, 280);
+    }
+
+    function refreshCategorySelectors() {
+      const l1 = document.getElementById("catL1");
+      const l2 = document.getElementById("catL2");
+      const l3 = document.getElementById("catL3");
+      const tree = buildCategoryHierarchy();
+      const l1Keys = [...tree.keys()];
+      if (!l1Keys.length) {
+        setOptions(l1, []);
+        setOptions(l2, []);
+        setOptions(l3, []);
+        return;
+      }
+      const keepL1 = l1.value;
+      const keepL2 = l2.value;
+      const keepL3 = l3.value;
+      setOptions(l1, l1Keys);
+      if (keepL1 && l1Keys.includes(keepL1)) l1.value = keepL1;
+      const l2Keys = l1.value ? [...tree.get(l1.value).keys()] : [];
+      setOptions(l2, l2Keys);
+      if (keepL2 && l2Keys.includes(keepL2)) l2.value = keepL2;
+      const l3Keys = (l1.value && l2.value && tree.get(l1.value)?.get(l2.value))
+        ? [...tree.get(l1.value).get(l2.value)]
+        : [];
+      setOptions(l3, l3Keys);
+      if (keepL3 && l3Keys.includes(keepL3)) l3.value = keepL3;
+
+      wireCategoryCascade(l1, l2, l3, tree);
     }
 
     function sortCategories(list) {
@@ -2878,11 +3164,7 @@
       document.getElementById("txAmount").value = formatCurrencyInput(t.amount);
       document.getElementById("txAssetType").value = t.assetType || "";
       document.getElementById("txMemo").value = t.memo || "";
-      document.getElementById("catL1").value = t.l1;
-      document.getElementById("catL1").dispatchEvent(new Event("change"));
-      document.getElementById("catL2").value = t.l2;
-      document.getElementById("catL2").dispatchEvent(new Event("change"));
-      document.getElementById("catL3").value = t.l3;
+      applyCategoryToSelectors({ l1: t.l1, l2: t.l2, l3: t.l3 });
       const delBtn = document.getElementById("txModalDeleteBtn");
       if (delBtn) delBtn.classList.remove("hidden");
     }
@@ -3151,6 +3433,8 @@
       document.getElementById("txModal").onclick = (e) => {
         if (e.target.id === "txModal") closeTransactionModal();
       };
+      const txMemoEl = document.getElementById("txMemo");
+      if (txMemoEl) txMemoEl.addEventListener("input", scheduleCategorySuggestFromMemo);
       const openCatBtn = document.getElementById("openCatModalBtn");
       if (openCatBtn) openCatBtn.onclick = openCategoryModalForCreate;
       document.getElementById("catModalCancelBtn").onclick = closeCategoryModal;
@@ -3295,6 +3579,11 @@
           { event: "*", schema: "public", table: "asset_types", filter: `household_code=eq.${householdCode}` },
           () => reloadFromSupabase()
         )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "memo_category_learn", filter: `household_code=eq.${householdCode}` },
+          () => loadMemoCategoryLearnFromSupabase()
+        )
         .subscribe();
     }
 
@@ -3376,6 +3665,7 @@
           createdAt: t.created_at || ""
         }));
         initUsers();
+        await loadMemoCategoryLearnFromSupabase();
         refreshAll();
       } finally {
         refreshing = false;
@@ -3455,6 +3745,13 @@
           console.error(error);
           return;
         }
+        await rememberMemoCategoryMapping(
+          payload.memo,
+          payload.l1,
+          payload.l2,
+          payload.l3,
+          payload.categoryId
+        );
         resetTransactionForm();
         closeTransactionModal();
         await reloadFromSupabase();
