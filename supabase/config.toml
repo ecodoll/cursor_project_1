@@ -1,0 +1,4 @@
+# Supabase CLI 프로젝트 설정 (Edge Functions 배포용)
+# 사용: supabase link --project-ref YOUR_PROJECT_REF
+
+# 이메일 Edge Function 미사용

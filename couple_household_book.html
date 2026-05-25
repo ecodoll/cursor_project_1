@@ -1013,46 +1013,115 @@
       box-shadow: var(--shadow);
     }
     .auth-card h2 {
-      margin-bottom: 6px;
+      margin: 0 0 14px;
       background: linear-gradient(120deg, #7c3aed 0%, #db2777 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-    }
-    .auth-card .lead {
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: 18px;
-      line-height: 1.5;
-    }
-    .auth-mode-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .auth-mode-tabs button {
-      flex: 1;
-      padding: 10px 12px;
-      font-weight: 650;
-      border-radius: var(--radius-sm);
-    }
-    .auth-mode-tabs button.active {
-      background: var(--grad-cta);
-      color: #fff;
-      border-color: transparent;
-      box-shadow: var(--grad-cta-shadow);
     }
     .auth-panel { display: none; }
     .auth-panel.active { display: block; }
     .auth-msg {
       font-size: 13px;
       color: var(--danger);
-      margin-bottom: 12px;
-      min-height: 1.2em;
+      margin: 0 0 12px;
+      min-height: 0;
+    }
+    .auth-msg:empty {
+      display: none;
+      margin: 0;
     }
     .auth-msg.ok { color: var(--success); }
     .auth-actions { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
     .auth-actions .btn-primary { width: 100%; padding: 12px 14px; }
+    .auth-btn-secondary {
+      width: 100%;
+      padding: 11px 14px;
+      font-weight: 650;
+      font-size: 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(168, 85, 247, 0.28);
+      background: rgba(255, 255, 255, 0.92);
+      color: #6b21a8;
+      cursor: pointer;
+    }
+    .auth-btn-secondary:hover {
+      background: #faf5ff;
+      border-color: rgba(168, 85, 247, 0.42);
+    }
+    .auth-link-btn {
+      display: block;
+      width: 100%;
+      margin-top: 6px;
+      padding: 0;
+      border: none;
+      background: none;
+      font-size: 12px;
+      font-weight: 650;
+      color: #9333ea;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-align: left;
+    }
+    .auth-back-login {
+      display: inline-block;
+      margin: 0 0 12px;
+      padding: 0;
+      border: none;
+      background: none;
+      font-size: 13px;
+      font-weight: 650;
+      color: #9333ea;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .auth-verify-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+    .auth-verify-row input { min-width: 0; }
+    .auth-verify-row button {
+      white-space: nowrap;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .auth-step-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+    .auth-household-status {
+      font-size: 13px;
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      background: rgba(250, 245, 255, 0.9);
+      border: 1px solid rgba(168, 85, 247, 0.18);
+      color: #581c87;
+    }
+    .join-requests-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .join-request-item {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: #fff;
+    }
     .auth-divider {
       margin: 16px 0 12px;
       font-size: 12px;
@@ -1585,9 +1654,6 @@
       background-clip: text;
       color: transparent;
     }
-    body.mobile-ui .auth-mode-tabs button.active {
-      background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
-    }
     body.mobile-ui canvas {
       max-height: 260px;
     }
@@ -1603,61 +1669,46 @@
   <div id="authOverlay" class="auth-overlay hidden" aria-live="polite">
     <div class="auth-card">
       <h2>가계부</h2>
-      <p class="lead">계정으로 로그인하면 Supabase URL·키·가족 코드를 매번 입력하지 않아도 됩니다. 배포 시 URL·키를 코드에 넣어 두면 가입·로그인 화면에만 가족 코드가 보입니다.</p>
-      <div class="auth-mode-tabs" role="tablist">
-        <button type="button" class="active" id="authTabLogin" data-auth-mode="login">로그인</button>
-        <button type="button" id="authTabRegister" data-auth-mode="register">회원가입</button>
-      </div>
       <div id="authMsg" class="auth-msg" role="status"></div>
       <div id="authPanelLogin" class="auth-panel active">
         <div class="field">
-          <label for="gateEmailIn">이메일</label>
-          <input id="gateEmailIn" type="email" autocomplete="username" required>
+          <label for="gateEmailIn">이메일 (아이디)</label>
+          <input id="gateEmailIn" type="email" autocomplete="username">
         </div>
         <div class="field" style="margin-top:10px;">
           <label for="gatePasswordIn">비밀번호</label>
-          <input id="gatePasswordIn" type="password" autocomplete="current-password" required>
-        </div>
-        <div id="gateConnLoginWrap" class="hidden" style="margin-top:14px;">
-          <p class="settings-hint" style="margin-bottom:10px;">이 기기에 저장된 연결 정보가 없습니다. 한 번만 Supabase URL과 Anon Key를 입력해 주세요.</p>
-          <div class="field">
-            <label for="gateSbUrlLogin">Supabase URL</label>
-            <input id="gateSbUrlLogin" type="url" placeholder="https://xxxx.supabase.co" autocomplete="off">
-          </div>
-          <div class="field" style="margin-top:10px;">
-            <label for="gateSbKeyLogin">Supabase Anon Key</label>
-            <input id="gateSbKeyLogin" type="password" placeholder="eyJ..." autocomplete="off">
-          </div>
+          <input id="gatePasswordIn" type="password" autocomplete="current-password">
         </div>
         <div class="auth-actions">
           <button type="button" class="btn-primary" id="btnAuthLogin">로그인</button>
+          <button type="button" class="auth-btn-secondary" id="btnGoRegister">회원가입</button>
         </div>
       </div>
       <div id="authPanelRegister" class="auth-panel">
-        <div id="gateConnRegisterWrap">
-          <div class="field">
-            <label for="gateSbUrlReg">Supabase URL</label>
-            <input id="gateSbUrlReg" type="url" placeholder="https://xxxx.supabase.co" autocomplete="off">
-          </div>
-          <div class="field" style="margin-top:10px;">
-            <label for="gateSbKeyReg">Supabase Anon Key</label>
-            <input id="gateSbKeyReg" type="password" placeholder="eyJ..." autocomplete="off">
-          </div>
-        </div>
-        <div class="field" style="margin-top:14px;">
-          <label for="gateHouseholdReg">가족 코드(가계부 이름)</label>
-          <input id="gateHouseholdReg" placeholder="예: our-home-2025" autocomplete="off">
-        </div>
-        <div class="field" style="margin-top:10px;">
+        <button type="button" class="auth-back-login" id="btnGoLogin">← 로그인으로 돌아가기</button>
+        <div class="field">
           <label for="gateEmailReg">이메일</label>
-          <input id="gateEmailReg" type="email" autocomplete="off" required>
+          <input id="gateEmailReg" type="email" autocomplete="email">
         </div>
         <div class="field" style="margin-top:10px;">
           <label for="gatePasswordReg">비밀번호 (6자 이상)</label>
-          <input id="gatePasswordReg" type="password" autocomplete="new-password" required>
+          <input id="gatePasswordReg" type="password" autocomplete="new-password">
+        </div>
+        <div class="field" style="margin-top:10px;">
+          <label for="gatePasswordConfirmReg">비밀번호 확인</label>
+          <input id="gatePasswordConfirmReg" type="password" autocomplete="new-password">
+        </div>
+        <div class="field" style="margin-top:10px;">
+          <label for="gateHouseholdReg">가족 코드</label>
+          <div class="auth-verify-row">
+            <input id="gateHouseholdReg" placeholder="예: our-home-2025" autocomplete="off">
+            <button type="button" id="btnFindFamilyCode">찾기</button>
+          </div>
+          <p class="auth-step-hint">「찾기」로 가족 코드를 확인한 뒤 회원가입을 완료해 주세요.</p>
+          <div id="gateHouseholdStatus" class="auth-household-status hidden" aria-live="polite"></div>
         </div>
         <div class="auth-actions">
-          <button type="button" class="btn-primary" id="btnAuthRegister">가입하고 연결</button>
+          <button type="button" class="btn-primary" id="btnAuthRegister">회원가입 완료</button>
         </div>
       </div>
     </div>
@@ -1860,8 +1911,14 @@
       <div class="grid">
         <div class="col-12 card">
           <h2>접속 설정</h2>
-          <p class="settings-hint">로그인한 계정에 가족 코드가 연결되어 있으며, URL·Anon Key는 이 브라우저에 저장됩니다. 공용 PC에서는 로그아웃 후 이용해 주세요. (배포본에 기본 URL·키를 넣어 두면 이 탭에서 키 입력 없이 쓸 수 있습니다.)</p>
+          <p class="settings-hint">로그인한 계정과 가족 코드로 연결됩니다. 공용 PC에서는 로그아웃 후 이용해 주세요.</p>
           <p class="settings-hint" id="settingsAccountLine" style="margin-top:-8px;"></p>
+          <div id="joinRequestsAdminCard" class="hidden" style="margin-bottom:16px;">
+            <h3>가입 승인 대기</h3>
+            <p class="settings-hint">아래 이메일 계정의 가입 요청을 승인하거나 거절할 수 있습니다. (이메일 발송 없음)</p>
+            <div id="joinRequestsList" class="join-requests-list"></div>
+            <p id="joinRequestsEmpty" class="settings-hint hidden">대기 중인 가입 요청이 없습니다.</p>
+          </div>
           <div class="row" style="margin-bottom:14px;">
             <button type="button" id="logoutBtn" class="btn-danger">로그아웃</button>
           </div>
@@ -1977,8 +2034,8 @@
 
   <script>
     /** Vercel 배포 시 여기에 프로젝트 값을 넣으면 가입·로그인 화면에서 URL·Anon Key 입력란이 숨겨집니다. */
-    const DEFAULT_SUPABASE_URL = "";
-    const DEFAULT_SUPABASE_ANON_KEY = "";
+    const DEFAULT_SUPABASE_URL = "https://islzgcwhpkjlfgtawkru.supabase.co";
+    const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_WGOwdrA75ON1vUQPI3BYLA_WBIqVq0j";
 
     const CONFIG_KEY = "couple-household-supabase-config-v1";
     const KRW = new Intl.NumberFormat("ko-KR");
@@ -2025,6 +2082,8 @@
     let selectedMonth = ymNow;
     let memoCategorySuggestTimer = null;
     let memoCategoryLearnMap = {};
+    /** @type {{ code: string, exists: boolean, adminEmail?: string, legacy?: boolean } | null} */
+    let lastFamilyCodeProbe = null;
     const txAmountEl = () => document.getElementById("txAmount");
 
     let appLoadingCount = 0;
@@ -2282,9 +2341,21 @@
       return !!(String(DEFAULT_SUPABASE_URL || "").trim() && String(DEFAULT_SUPABASE_ANON_KEY || "").trim());
     }
 
+    /** Supabase JS는 프로젝트 루트 URL만 받습니다. /rest/v1 등이 붙으면 로그인 시 Invalid path 오류가 납니다. */
+    function normalizeSupabaseUrl(raw) {
+      let u = String(raw || "").trim();
+      if (!u) return "";
+      u = u.replace(/\/+$/, "");
+      u = u.replace(/\/rest\/v1$/i, "");
+      u = u.replace(/\/auth\/v1$/i, "");
+      return u;
+    }
+
     function resolveStoredUrlKey() {
       const cfg = loadConfig() || {};
-      const url = (String(DEFAULT_SUPABASE_URL || "").trim() || String(cfg.url || "").trim());
+      const url = normalizeSupabaseUrl(
+        String(DEFAULT_SUPABASE_URL || "").trim() || String(cfg.url || "").trim()
+      );
       const anonKey = (String(DEFAULT_SUPABASE_ANON_KEY || "").trim() || String(cfg.anonKey || "").trim());
       return { url, anonKey, code: String(cfg.code || "").trim() };
     }
@@ -2297,7 +2368,7 @@
     }
 
     function ensureClient(url, anonKey) {
-      const u = String(url || "").trim();
+      const u = normalizeSupabaseUrl(url);
       const k = String(anonKey || "").trim();
       if (!u || !k) return null;
       if (supabaseClient && lastClientUrl === u && lastClientKey === k) return supabaseClient;
@@ -2338,16 +2409,13 @@
       if (main) main.classList.remove("hidden");
     }
 
-    function updateGateRegisterVisibility() {
-      const wrap = document.getElementById("gateConnRegisterWrap");
-      if (wrap) wrap.classList.toggle("hidden", hasEmbeddedSupabaseDefaults());
-    }
-
-    function refreshLoginConnFieldsVisibility() {
+    function assertSupabaseConfigured() {
       const { url, anonKey } = resolveStoredUrlKey();
-      const has = !!(url && anonKey);
-      const wrap = document.getElementById("gateConnLoginWrap");
-      if (wrap) wrap.classList.toggle("hidden", has);
+      if (!url || !anonKey) {
+        setAuthError("앱에 Supabase URL·Anon Key가 설정되어 있지 않습니다. 배포 설정(DEFAULT_SUPABASE_URL / DEFAULT_SUPABASE_ANON_KEY)을 확인해 주세요.");
+        return null;
+      }
+      return ensureClient(url, anonKey);
     }
 
     function syncDefaultsUiVisibility() {
@@ -2359,86 +2427,555 @@
 
     function syncGateFormFromConfig() {
       const cfg = loadConfig();
-      const regUrl = document.getElementById("gateSbUrlReg");
-      const regKey = document.getElementById("gateSbKeyReg");
       const regCode = document.getElementById("gateHouseholdReg");
-      if (cfg?.url && regUrl) regUrl.value = cfg.url;
-      if (cfg?.anonKey && regKey) regKey.value = cfg.anonKey;
       if (cfg?.code && regCode) regCode.value = cfg.code;
-      refreshLoginConnFieldsVisibility();
-      updateGateRegisterVisibility();
       syncDefaultsUiVisibility();
     }
 
     function switchAuthMode(mode) {
-      const loginTab = document.getElementById("authTabLogin");
-      const regTab = document.getElementById("authTabRegister");
       const pLogin = document.getElementById("authPanelLogin");
       const pReg = document.getElementById("authPanelRegister");
       const isLogin = mode === "login";
-      if (loginTab && regTab) {
-        loginTab.classList.toggle("active", isLogin);
-        regTab.classList.toggle("active", !isLogin);
-      }
       if (pLogin && pReg) {
         pLogin.classList.toggle("active", isLogin);
         pReg.classList.toggle("active", !isLogin);
       }
-      if (isLogin) refreshLoginConnFieldsVisibility();
-      else updateGateRegisterVisibility();
+    }
+
+    async function probeHouseholdKey(code) {
+      const key = String(code || "").trim();
+      if (!key || !supabaseClient) return { exists: false };
+      const { data: hh, error } = await supabaseClient
+        .from("households")
+        .select("household_code, admin_email")
+        .eq("household_code", key)
+        .maybeSingle();
+      if (error) console.warn(error);
+      if (hh) {
+        return {
+          exists: true,
+          adminEmail: String(hh.admin_email || "").trim(),
+          isNew: false
+        };
+      }
+      const { count, error: cErr } = await supabaseClient
+        .from("categories")
+        .select("id", { count: "exact", head: true })
+        .eq("household_code", key);
+      if (cErr) console.warn(cErr);
+      return { exists: (count || 0) > 0, isNew: false, legacy: true };
+    }
+
+    function renderFamilyCodeStatus(probe, code) {
+      const el = document.getElementById("gateHouseholdStatus");
+      if (!el) return;
+      if (!code) {
+        el.classList.add("hidden");
+        el.textContent = "";
+        return;
+      }
+      el.classList.remove("hidden");
+      if (!probe.exists) {
+        el.textContent = "사용 가능한 가족 코드입니다. 가입 완료 시 회원님이 관리자가 됩니다.";
+      } else if (probe.adminEmail && probe.adminEmail !== "pending-admin@local") {
+        el.textContent = `이미 등록된 가족 코드입니다. 가입 후 관리자(${probe.adminEmail}) 승인이 필요합니다.`;
+      } else {
+        el.textContent = "이미 등록된 가족 코드입니다. 가입 후 관리자 승인이 필요합니다.";
+      }
+    }
+
+    async function onFindFamilyCode() {
+      setAuthError("");
+      const code = document.getElementById("gateHouseholdReg")?.value.trim() || "";
+      if (!code) {
+        setAuthError("가족 코드를 입력해 주세요.");
+        return;
+      }
+      const client = assertSupabaseConfigured();
+      if (!client) return;
+      showAppLoading();
+      try {
+        const probe = await probeHouseholdKey(code);
+        lastFamilyCodeProbe = { code, ...probe };
+        renderFamilyCodeStatus(probe, code);
+        setAuthError("가족 코드를 확인했습니다. 회원가입을 완료해 주세요.", true);
+      } finally {
+        hideAppLoading();
+      }
+    }
+
+    function mapSupabaseAuthError(err) {
+      const msg = String(err?.message || err || "").toLowerCase();
+      if (msg.includes("email signups are disabled") || msg.includes("signups disabled")) {
+        return "Supabase에서 이메일 회원가입이 꺼져 있습니다. 대시보드 → Authentication → Providers → Email에서 'Enable email signups'를 켜 주세요. (Confirm email은 끄면 됩니다.)";
+      }
+      if (msg.includes("email not confirmed") || msg.includes("email_not_confirmed")) {
+        return "Supabase에서 '이메일 확인(Confirm email)'이 켜져 있어 로그인할 수 없습니다. 대시보드 → Authentication → Email에서 Confirm email을 끄면 메일 없이 가입·로그인됩니다.";
+      }
+      if (msg.includes("invalid login credentials")) {
+        return "이메일 또는 비밀번호가 올바르지 않습니다.";
+      }
+      if (msg.includes("user already registered") || msg.includes("already been registered")) {
+        return "이미 가입된 이메일입니다. 로그인해 주세요.";
+      }
+      if (msg.includes("check your email") || msg.includes("confirmation")) {
+        return "이메일 확인 메일은 사용하지 않습니다. Supabase Authentication에서 Confirm email을 끄고 다시 시도해 주세요.";
+      }
+      return err?.message || String(err);
+    }
+
+    function authUserFromSession(session) {
+      if (!session?.user?.id) return null;
+      return {
+        id: session.user.id,
+        email: (session.user.email || "").trim().toLowerCase()
+      };
+    }
+
+    async function isHouseholdAdminForCode(code, session) {
+      if (!supabaseClient || !code || !session?.user?.id) return false;
+      const uid = session.user.id;
+      const email = (session.user.email || "").trim().toLowerCase();
+      const { data: hh } = await supabaseClient
+        .from("households")
+        .select("admin_user_id, admin_email")
+        .eq("household_code", code)
+        .maybeSingle();
+      if (hh?.admin_user_id === uid) return true;
+      const adm = (hh?.admin_email || "").trim().toLowerCase();
+      if (adm && adm !== "pending-admin@local" && adm === email) return true;
+      const { data: mem } = await supabaseClient
+        .from("household_members")
+        .select("role")
+        .eq("household_code", code)
+        .eq("user_id", uid)
+        .eq("status", "active")
+        .maybeSingle();
+      if (mem?.role === "admin") return true;
+      const cfgCode = (loadConfig()?.code || "").trim();
+      const noAdmin = !hh?.admin_user_id && (!adm || adm === "pending-admin@local");
+      if (noAdmin && cfgCode === code) return true;
+      return false;
+    }
+
+    async function ensureHouseholdAdminMembership(session, code) {
+      if (!supabaseClient || !session?.user?.id || !code) return;
+      const isAdmin = await isHouseholdAdminForCode(code, session);
+      if (!isAdmin) return;
+      const email = (session.user.email || "").trim();
+      await supabaseClient.from("household_members").upsert(
+        {
+          household_code: code,
+          user_id: session.user.id,
+          email,
+          role: "admin",
+          status: "active"
+        },
+        { onConflict: "household_code,user_id" }
+      );
+      const { data: hh } = await supabaseClient
+        .from("households")
+        .select("admin_user_id, admin_email")
+        .eq("household_code", code)
+        .maybeSingle();
+      if (hh && (!hh.admin_user_id || hh.admin_email === "pending-admin@local")) {
+        await supabaseClient
+          .from("households")
+          .update({ admin_email: email, admin_user_id: session.user.id })
+          .eq("household_code", code);
+      }
+    }
+
+    async function ensureLegacyHouseholdRow(code, adminEmail, adminUserId) {
+      const { data: hh } = await supabaseClient
+        .from("households")
+        .select("household_code")
+        .eq("household_code", code)
+        .maybeSingle();
+      if (hh) return;
+      await supabaseClient.from("households").insert({
+        household_code: code,
+        admin_email: adminEmail || "pending-admin@local",
+        admin_user_id: adminUserId || null
+      });
+    }
+
+    async function completeHouseholdRegistration(authUser, householdKey, sessionForSignOut) {
+      const email = (authUser.email || "").trim().toLowerCase();
+      const userId = authUser.id;
+      if (!userId || !email) {
+        setAuthError("계정 정보를 확인할 수 없습니다.");
+        return;
+      }
+      const key = String(householdKey || "").trim();
+      const probe = await probeHouseholdKey(key);
+
+      if (!probe.exists) {
+        await supabaseClient.from("households").insert({
+          household_code: key,
+          admin_email: email,
+          admin_user_id: userId
+        });
+        await supabaseClient.from("household_members").upsert(
+          {
+            household_code: key,
+            user_id: userId,
+            email,
+            role: "admin",
+            status: "active"
+          },
+          { onConflict: "household_code,user_id" }
+        );
+        if (sessionForSignOut?.user) {
+          await supabaseClient.auth.updateUser({ data: { household_code: key } });
+        }
+        const { url, anonKey } = resolveStoredUrlKey();
+        saveConfig({ url, anonKey, code: key });
+        if (sessionForSignOut) {
+          await enterApp(sessionForSignOut);
+        } else {
+          setAuthError("가입이 완료되었습니다. 로그인해 주세요.", true);
+          switchAuthMode("login");
+          showAuthGate(false);
+        }
+        return;
+      }
+
+      await ensureLegacyHouseholdRow(key, probe.adminEmail || "pending-admin@local", null);
+
+      const { data: reqRows, error: reqErr } = await supabaseClient
+        .from("household_join_requests")
+        .upsert(
+          {
+            household_code: key,
+            requester_email: email,
+            requester_user_id: userId,
+            status: "pending"
+          },
+          { onConflict: "household_code,requester_user_id" }
+        )
+        .select("id");
+      const reqRow = reqRows && reqRows[0];
+      if (reqErr) {
+        setAuthError("가입 승인 요청 저장에 실패했습니다.");
+        console.error(reqErr);
+        return;
+      }
+
+      await supabaseClient.from("household_members").upsert(
+        {
+          household_code: key,
+          user_id: userId,
+          email,
+          role: "member",
+          status: "pending"
+        },
+        { onConflict: "household_code,user_id" }
+      );
+
+      if (sessionForSignOut) {
+        await supabaseClient.auth.signOut();
+      }
+      setAuthError(
+        `가족 코드 "${key}" 가입 승인을 요청했습니다. 관리자가 설정 → 접속 설정에서 승인하면 로그인할 수 있습니다.`,
+        true
+      );
+      switchAuthMode("login");
+      showAuthGate(false);
+    }
+
+    async function resolveActiveMembership(session) {
+      const userId = session.user.id;
+      const { data: active, error } = await supabaseClient
+        .from("household_members")
+        .select("household_code, role, status")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
+      if (error) console.warn(error);
+      if (active?.household_code) {
+        return { ok: true, code: active.household_code, role: active.role };
+      }
+
+      const { data: pending } = await supabaseClient
+        .from("household_members")
+        .select("household_code")
+        .eq("user_id", userId)
+        .eq("status", "pending")
+        .limit(1)
+        .maybeSingle();
+      if (pending?.household_code) {
+        return { ok: false, reason: "pending", code: pending.household_code };
+      }
+
+      const metaCode = (session.user?.user_metadata?.household_code || "").trim();
+      if (metaCode) {
+        const { data: hh } = await supabaseClient
+          .from("households")
+          .select("admin_user_id, admin_email")
+          .eq("household_code", metaCode)
+          .maybeSingle();
+        const isAdmin = hh?.admin_user_id === userId;
+        await supabaseClient.from("household_members").upsert(
+          {
+            household_code: metaCode,
+            user_id: userId,
+            email: (session.user.email || "").trim(),
+            role: isAdmin ? "admin" : "member",
+            status: "active"
+          },
+          { onConflict: "household_code,user_id" }
+        );
+        if (!hh) {
+          await supabaseClient.from("households").insert({
+            household_code: metaCode,
+            admin_email: isAdmin ? session.user.email : "pending-admin@local",
+            admin_user_id: isAdmin ? userId : null
+          });
+        }
+        return { ok: true, code: metaCode, role: isAdmin ? "admin" : "member" };
+      }
+      const cfgCode = (loadConfig()?.code || "").trim();
+      if (cfgCode) {
+        const { data: hh } = await supabaseClient
+          .from("households")
+          .select("admin_user_id, admin_email")
+          .eq("household_code", cfgCode)
+          .maybeSingle();
+        if (hh) {
+          const email = (session.user.email || "").trim().toLowerCase();
+          const isAdmin =
+            hh.admin_user_id === userId
+            || ((hh.admin_email || "").toLowerCase() === email && hh.admin_email !== "pending-admin@local");
+          const noAdmin = !hh.admin_user_id && (!hh.admin_email || hh.admin_email === "pending-admin@local");
+          if (isAdmin || noAdmin) {
+            await supabaseClient.from("household_members").upsert(
+              {
+                household_code: cfgCode,
+                user_id: userId,
+                email: session.user.email || "",
+                role: "admin",
+                status: "active"
+              },
+              { onConflict: "household_code,user_id" }
+            );
+            if (noAdmin) {
+              await supabaseClient
+                .from("households")
+                .update({ admin_email: session.user.email, admin_user_id: userId })
+                .eq("household_code", cfgCode);
+            }
+            return { ok: true, code: cfgCode, role: "admin" };
+          }
+        }
+      }
+      return { ok: false, reason: "none" };
+    }
+
+    async function renderJoinRequestsAdmin() {
+      const card = document.getElementById("joinRequestsAdminCard");
+      const list = document.getElementById("joinRequestsList");
+      const emptyEl = document.getElementById("joinRequestsEmpty");
+      if (!card || !list || !supabaseClient || !householdCode) return;
+
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session?.user?.id) {
+        card.classList.add("hidden");
+        return;
+      }
+
+      await ensureHouseholdAdminMembership(session, householdCode);
+      const isAdmin = await isHouseholdAdminForCode(householdCode, session);
+      if (!isAdmin) {
+        card.classList.add("hidden");
+        if (emptyEl) emptyEl.classList.add("hidden");
+        return;
+      }
+
+      const { data: reqs, error } = await supabaseClient
+        .from("household_join_requests")
+        .select("*")
+        .eq("household_code", householdCode)
+        .eq("status", "pending")
+        .order("created_at", { ascending: true });
+      if (error) {
+        console.warn(error);
+        card.classList.remove("hidden");
+        list.innerHTML = "";
+        if (emptyEl) {
+          emptyEl.textContent = "가입 요청 목록을 불러오지 못했습니다.";
+          emptyEl.classList.remove("hidden");
+        }
+        return;
+      }
+
+      let rows = reqs || [];
+      if (!rows.length) {
+        const { data: pendingMembers } = await supabaseClient
+          .from("household_members")
+          .select("user_id, email, created_at")
+          .eq("household_code", householdCode)
+          .eq("status", "pending")
+          .order("created_at", { ascending: true });
+        rows = (pendingMembers || []).map((m) => ({
+          id: "",
+          requester_email: m.email,
+          requester_user_id: m.user_id
+        }));
+      }
+
+      card.classList.remove("hidden");
+      list.innerHTML = "";
+      if (!rows.length) {
+        if (emptyEl) emptyEl.classList.remove("hidden");
+        return;
+      }
+      if (emptyEl) emptyEl.classList.add("hidden");
+      rows.forEach((r) => {
+        const item = document.createElement("div");
+        item.className = "join-request-item";
+        const reqId = r.id || "";
+        item.innerHTML = `
+          <span>${r.requester_email}</span>
+          <span>
+            <button type="button" class="btn-primary" data-approve-join="${reqId}" data-join-user="${r.requester_user_id}">승인</button>
+            <button type="button" class="btn-danger" data-reject-join="${reqId}" data-join-user="${r.requester_user_id}">거절</button>
+          </span>`;
+        list.appendChild(item);
+      });
+
+      list.querySelectorAll("[data-approve-join]").forEach((btn) => {
+        btn.onclick = () => resolveJoinRequest(btn.getAttribute("data-approve-join"), btn.getAttribute("data-join-user"), true);
+      });
+      list.querySelectorAll("[data-reject-join]").forEach((btn) => {
+        btn.onclick = () => resolveJoinRequest(btn.getAttribute("data-reject-join"), btn.getAttribute("data-join-user"), false);
+      });
+    }
+
+    async function resolveJoinRequest(requestId, userId, approve) {
+      if (!userId || !supabaseClient) return;
+      const status = approve ? "approved" : "rejected";
+      if (requestId) {
+        const { error: uErr } = await supabaseClient
+          .from("household_join_requests")
+          .update({ status, resolved_at: new Date().toISOString() })
+          .eq("id", requestId);
+        if (uErr) {
+          alert("요청 처리에 실패했습니다.");
+          return;
+        }
+      } else {
+        await supabaseClient
+          .from("household_join_requests")
+          .update({ status, resolved_at: new Date().toISOString() })
+          .eq("household_code", householdCode)
+          .eq("requester_user_id", userId)
+          .eq("status", "pending");
+      }
+      await supabaseClient
+        .from("household_members")
+        .update({ status: approve ? "active" : "rejected" })
+        .eq("household_code", householdCode)
+        .eq("user_id", userId);
+      await renderJoinRequestsAdmin();
+      if (approve) alert("승인했습니다. 해당 사용자는 로그인 후 가족 가계부를 이용할 수 있습니다.");
+      else alert("거절했습니다.");
     }
 
     function initAuthGateUI() {
-      document.getElementById("authTabLogin").onclick = () => switchAuthMode("login");
-      document.getElementById("authTabRegister").onclick = () => switchAuthMode("register");
+      document.getElementById("btnGoLogin").onclick = () => {
+        setAuthError("");
+        switchAuthMode("login");
+      };
+      document.getElementById("btnGoRegister").onclick = () => {
+        setAuthError("");
+        lastFamilyCodeProbe = null;
+        switchAuthMode("register");
+      };
       document.getElementById("btnAuthLogin").onclick = () => onAuthLogin();
       document.getElementById("btnAuthRegister").onclick = () => onAuthRegister();
+      document.getElementById("btnFindFamilyCode").onclick = () => onFindFamilyCode();
+      const hhInput = document.getElementById("gateHouseholdReg");
+      if (hhInput) {
+        hhInput.addEventListener("input", () => {
+          lastFamilyCodeProbe = null;
+          const st = document.getElementById("gateHouseholdStatus");
+          if (st && !hhInput.value.trim()) st.classList.add("hidden");
+        });
+      }
     }
 
     async function onAuthRegister() {
       setAuthError("");
-      const email = document.getElementById("gateEmailReg").value.trim();
+      const email = document.getElementById("gateEmailReg").value.trim().toLowerCase();
       const password = document.getElementById("gatePasswordReg").value;
-      const code = document.getElementById("gateHouseholdReg").value.trim();
-      const regUrl = (String(DEFAULT_SUPABASE_URL || "").trim() || document.getElementById("gateSbUrlReg").value.trim());
-      const regKey = (String(DEFAULT_SUPABASE_ANON_KEY || "").trim() || document.getElementById("gateSbKeyReg").value.trim());
-      if (!email || password.length < 6) {
-        setAuthError("이메일과 비밀번호(6자 이상)를 확인해 주세요.");
+      const passwordConfirm = document.getElementById("gatePasswordConfirmReg").value;
+      const familyCode = document.getElementById("gateHouseholdReg").value.trim();
+      if (!email || !email.includes("@")) {
+        setAuthError("올바른 이메일 주소를 입력해 주세요.");
         return;
       }
-      if (!code) {
-        setAuthError("가족 코드(가계부 이름)를 입력해 주세요. 배우자분은 같은 코드로 가입하면 같은 가계부를 봅니다.");
+      if (password.length < 6) {
+        setAuthError("비밀번호는 6자 이상이어야 합니다.");
         return;
       }
-      if (!regUrl || !regKey) {
-        setAuthError("Supabase URL과 Anon Key를 입력해 주세요.");
+      if (password !== passwordConfirm) {
+        setAuthError("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
         return;
       }
-      const client = ensureClient(regUrl, regKey);
+      if (!familyCode) {
+        setAuthError("가족 코드를 입력해 주세요.");
+        return;
+      }
+      if (!lastFamilyCodeProbe || lastFamilyCodeProbe.code !== familyCode) {
+        setAuthError("「찾기」로 가족 코드를 먼저 확인해 주세요.");
+        return;
+      }
+      const client = assertSupabaseConfigured();
       if (!client) return;
       showAppLoading();
       try {
-        setAuthError("처리 중…", true);
-        const { data, error } = await client.auth.signUp({
-          email,
-          password,
-          options: { data: { household_code: code } }
-        });
-        if (error) {
-          setAuthError(error.message || "가입에 실패했습니다.");
+        setAuthError("가입 처리 중…", true);
+
+        let session = null;
+        let authUser = null;
+        const { data, error } = await client.auth.signUp({ email, password });
+        if (data?.user?.id) {
+          authUser = { id: data.user.id, email: (data.user.email || email).trim().toLowerCase() };
+        }
+        session = data?.session || null;
+        if (!session) {
+          const { data: d2, error: e2 } = await client.auth.signInWithPassword({ email, password });
+          if (d2?.session) {
+            session = d2.session;
+            authUser = authUserFromSession(session);
+          } else if (e2 && !authUser) {
+            setAuthError(mapSupabaseAuthError(error || e2));
+            return;
+          } else if (e2 && authUser) {
+            setAuthError(
+              `${mapSupabaseAuthError(e2)} 가입 승인 요청을 저장하려면 Supabase에서 Confirm email을 끄고 다시 회원가입해 주세요.`,
+            );
+            return;
+          }
+        } else {
+          authUser = authUserFromSession(session) || authUser;
+        }
+
+        if (!authUser?.id) {
+          setAuthError("계정을 만들지 못했습니다. 잠시 후 다시 시도해 주세요.");
           return;
         }
-        saveConfig({ url: regUrl, anonKey: regKey, code });
-        let sess = data.session;
-        if (!sess) {
-          const { data: d2 } = await client.auth.getSession();
-          sess = d2.session;
-        }
-        if (!sess) {
-          setAuthError("가입은 완료되었습니다. Supabase 대시보드에서 이메일 인증을 끄면 바로 입장할 수 있고, 켜 두었다면 메일의 링크를 눌러 주세요.", true);
+
+        if (!session) {
+          setAuthError("로그인 세션이 없어 가입 요청을 저장할 수 없습니다. Supabase Authentication → Email → Confirm email을 끄고 다시 시도해 주세요.");
           return;
         }
-        await enterApp(sess);
+
+        const { url, anonKey } = resolveStoredUrlKey();
+        saveConfig({ url, anonKey });
+        await completeHouseholdRegistration(authUser, familyCode, session);
       } finally {
         hideAppLoading();
       }
@@ -2448,36 +2985,26 @@
       setAuthError("");
       const email = document.getElementById("gateEmailIn").value.trim();
       const password = document.getElementById("gatePasswordIn").value;
-      const cfg = loadConfig() || {};
-      let url = (String(DEFAULT_SUPABASE_URL || "").trim() || String(cfg.url || "").trim());
-      let anonKey = (String(DEFAULT_SUPABASE_ANON_KEY || "").trim() || String(cfg.anonKey || "").trim());
-      if (!url) url = document.getElementById("gateSbUrlLogin").value.trim();
-      if (!anonKey) anonKey = document.getElementById("gateSbKeyLogin").value.trim();
-      if (!url || !anonKey) {
-        setAuthError("이 기기에 Supabase URL·키가 없습니다. 아래에 입력하거나, 먼저 회원가입으로 저장해 주세요.");
-        document.getElementById("gateConnLoginWrap").classList.remove("hidden");
-        return;
-      }
       if (!email || !password) {
         setAuthError("이메일과 비밀번호를 입력해 주세요.");
         return;
       }
-      const client = ensureClient(url, anonKey);
+      const client = assertSupabaseConfigured();
       if (!client) return;
       showAppLoading();
       try {
         setAuthError("로그인 중…", true);
         const { data, error } = await client.auth.signInWithPassword({ email, password });
         if (error) {
-          setAuthError(error.message || "로그인에 실패했습니다.");
+          setAuthError(mapSupabaseAuthError(error));
           return;
         }
         if (!data.session) {
           setAuthError("세션을 만들 수 없습니다.");
           return;
         }
-        const metaCode = (data.session.user?.user_metadata?.household_code || "").trim();
-        saveConfig({ url, anonKey, code: metaCode || String(cfg.code || "").trim() });
+        const { url, anonKey } = resolveStoredUrlKey();
+        saveConfig({ url, anonKey });
         await enterApp(data.session);
       } finally {
         hideAppLoading();
@@ -2488,12 +3015,6 @@
       showAppLoading();
       try {
         setAuthError("");
-        const code = (session.user?.user_metadata?.household_code || "").trim();
-        if (!code) {
-          setAuthError("이 계정에 가족 코드가 없습니다. 회원가입 시 입력한 가족 코드가 필요합니다.");
-          showAuthGate(false);
-          return;
-        }
         const { url, anonKey } = resolveStoredUrlKey();
         if (!url || !anonKey) {
           setAuthError("Supabase 연결 정보가 없습니다.");
@@ -2501,7 +3022,38 @@
           return;
         }
         ensureClient(url, anonKey);
+
+        const membership = await resolveActiveMembership(session);
+        if (!membership.ok) {
+          if (membership.reason === "pending") {
+            setAuthError(`가족 코드 "${membership.code}" 가입 승인을 기다리는 중입니다. 관리자 승인 후 다시 로그인해 주세요.`);
+          } else {
+            setAuthError("연결된 가족 코드가 없습니다. 회원가입을 완료해 주세요.");
+          }
+          await supabaseClient.auth.signOut();
+          showAuthGate(false);
+          return;
+        }
+
+        const code = membership.code;
         householdCode = code;
+        await ensureHouseholdAdminMembership(session, code);
+        if (membership.role === "admin") {
+          const { data: hh } = await supabaseClient
+            .from("households")
+            .select("admin_email, admin_user_id")
+            .eq("household_code", code)
+            .maybeSingle();
+          if (hh && (!hh.admin_user_id || hh.admin_email === "pending-admin@local")) {
+            await supabaseClient
+              .from("households")
+              .update({
+                admin_email: (session.user.email || "").trim(),
+                admin_user_id: session.user.id
+              })
+              .eq("household_code", code);
+          }
+        }
         const sbUrl = document.getElementById("sbUrl");
         const sbKey = document.getElementById("sbAnonKey");
         const hh = document.getElementById("householdCode");
@@ -2518,7 +3070,8 @@
           await ensureSeedData();
           await reloadFromSupabase();
           bindRealtime();
-          setConnectionStatus(`연결됨 · ${session.user?.email || ""} · 가족 코드 ${householdCode}`, true);
+          await renderJoinRequestsAdmin();
+          setConnectionStatus(`연결됨 · ${session.user?.email || ""} · 가계부 ${householdCode}`, true);
           hideAuthGateForApp();
         } catch (err) {
           console.error(err);
@@ -2544,13 +3097,7 @@
       }
       const { data: { session } } = await client.auth.getSession();
       if (session) {
-        const code = (session.user?.user_metadata?.household_code || "").trim();
-        if (code) {
-          await enterApp(session);
-          return;
-        }
-        setAuthError("로그인 정보는 있으나 가족 코드가 없습니다. 같은 Supabase에서 다시 가입하거나 메타데이터를 확인해 주세요.");
-        showAuthGate(false);
+        await enterApp(session);
         return;
       }
       showAuthGate();
@@ -3387,6 +3934,7 @@
       const panel = document.getElementById(`tab-${name}`);
       if (panel) panel.classList.remove("hidden");
       if (name === "reports") buildReports();
+      if (name === "settings") renderJoinRequestsAdmin();
       closeHeaderSettingsMenu();
       if (document.body.classList.contains("mobile-ui")) {
         const icon = document.querySelector(`.tab-icon-btn[data-tab="${name}"]`);
@@ -3526,7 +4074,7 @@
 
     async function connectSupabase() {
       const cfg = loadConfig() || {};
-      const url = (
+      const url = normalizeSupabaseUrl(
         document.getElementById("sbUrl").value.trim()
         || String(DEFAULT_SUPABASE_URL || "").trim()
         || String(cfg.url || "").trim()
@@ -3551,6 +4099,8 @@
         await reloadFromSupabase();
         bindRealtime();
         setConnectionStatus(`연결됨: 가족 코드 ${householdCode}`, true);
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) await renderJoinRequestsAdmin();
       } catch (err) {
         console.error(err);
         setConnectionStatus("연결 실패: URL/키/테이블 설정을 확인해 주세요.");
@@ -3583,6 +4133,11 @@
           "postgres_changes",
           { event: "*", schema: "public", table: "memo_category_learn", filter: `household_code=eq.${householdCode}` },
           () => loadMemoCategoryLearnFromSupabase()
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "household_join_requests", filter: `household_code=eq.${householdCode}` },
+          () => renderJoinRequestsAdmin()
         )
         .subscribe();
     }
@@ -3850,12 +4405,12 @@
         document.getElementById("sbAnonKey").value = defKey || (cfg?.anonKey || "");
         document.getElementById("householdCode").value = cfg?.code || "";
         syncDefaultsUiVisibility();
-        if (cfg?.url && cfg?.anonKey) {
-          setConnectionStatus("저장된 연결 정보가 있습니다. 로그인하면 자동으로 가계부에 연결됩니다.", false);
-        } else if (defUrl && defKey) {
-          setConnectionStatus("배포 기본 Supabase가 설정되어 있습니다. 회원가입 또는 로그인해 주세요.", false);
+        if (defUrl && defKey) {
+          setConnectionStatus("이메일·비밀번호로 로그인하거나 회원가입해 주세요.", false);
         } else {
-          setConnectionStatus("회원가입에서 URL·키·가족 코드를 한 번 저장한 뒤, 이후에는 로그인만 하면 됩니다.", false);
+          setConnectionStatus("앱에 Supabase URL·Anon Key를 설정한 뒤 이용해 주세요.", false);
+          setAuthError("DEFAULT_SUPABASE_URL / DEFAULT_SUPABASE_ANON_KEY 가 비어 있습니다.");
+          showAuthGate(false);
         }
         initUsers();
         refreshAll();
