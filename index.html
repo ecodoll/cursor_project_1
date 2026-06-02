@@ -3138,6 +3138,12 @@
           await renderJoinRequestsAdmin();
           setConnectionStatus(`연결됨 · ${session.user?.email || ""} · 가계부 ${householdCode}`, true);
           hideAuthGateForApp();
+          const hashState = parseAppStateFromHash();
+          if (location.hash) {
+            applyAppHistoryState(hashState);
+          } else {
+            replaceAppHistory("dashboard", "", "");
+          }
         } catch (err) {
           console.error(err);
           setAuthError("DB에 연결하지 못했습니다. Supabase에 authenticated용 RLS 정책이 있는지(supabase_schema.sql), URL·키를 확인해 주세요.");
@@ -3489,14 +3495,14 @@
       modal.setAttribute("aria-hidden", "false");
       const input = document.getElementById("assetModalName");
       if (input) setTimeout(() => input.focus(), 50);
+      if (!historyRestoring) {
+        const tab = document.body.getAttribute("data-active-tab") || "assets";
+        pushAppHistory(tab, "asset", "");
+      }
     }
 
     function closeAssetModal() {
-      const modal = document.getElementById("assetModal");
-      if (!modal) return;
-      modal.classList.add("hidden");
-      modal.setAttribute("aria-hidden", "true");
-      resetAssetForm();
+      closeModalViaHistory("asset");
     }
 
     function openAssetModalForCreate() {
@@ -3529,14 +3535,14 @@
       modal.setAttribute("aria-hidden", "false");
       const first = document.getElementById("newL1");
       if (first) setTimeout(() => first.focus(), 50);
+      if (!historyRestoring) {
+        const tab = document.body.getAttribute("data-active-tab") || "categories";
+        pushAppHistory(tab, "cat", "");
+      }
     }
 
     function closeCategoryModal() {
-      const modal = document.getElementById("catModal");
-      if (!modal) return;
-      modal.classList.add("hidden");
-      modal.setAttribute("aria-hidden", "true");
-      resetCategoryForm();
+      closeModalViaHistory("cat");
     }
 
     function openCategoryModalForCreate() {
@@ -3845,22 +3851,17 @@
       if (delBtn) delBtn.classList.add("hidden");
     }
     function openTransactionModalForCreate() {
-      resetTransactionForm();
-      document.getElementById("txModalTitle").textContent = "거래 추가";
-      document.getElementById("txModal").classList.remove("hidden");
-      document.getElementById("txModal").setAttribute("aria-hidden", "false");
+      showTxModalUi("create", "");
+      const tab = document.body.getAttribute("data-active-tab") || "dashboard";
+      pushAppHistory(tab, "tx", "");
     }
     function openTransactionModalForEdit(id) {
-      fillTransactionForm(id);
-      document.getElementById("txModalTitle").textContent = "거래 수정";
-      document.getElementById("txModal").classList.remove("hidden");
-      document.getElementById("txModal").setAttribute("aria-hidden", "false");
+      showTxModalUi("edit", id);
+      const tab = document.body.getAttribute("data-active-tab") || "dashboard";
+      pushAppHistory(tab, "tx", id || "");
     }
     function closeTransactionModal() {
-      document.getElementById("txModal").classList.add("hidden");
-      document.getElementById("txModal").setAttribute("aria-hidden", "true");
-      const delBtn = document.getElementById("txModalDeleteBtn");
-      if (delBtn) delBtn.classList.add("hidden");
+      closeModalViaHistory("tx");
     }
 
     function renderDashboard() {
@@ -4036,7 +4037,153 @@
       }
     }
 
-    function switchTab(name) {
+    const APP_HISTORY_MARK = "household-book-v1";
+    let historyRestoring = false;
+
+    function isMainAppVisible() {
+      return !document.getElementById("mainApp")?.classList.contains("hidden");
+    }
+
+    function getTopModal() {
+      if (!document.getElementById("txModal")?.classList.contains("hidden")) return "tx";
+      if (!document.getElementById("catModal")?.classList.contains("hidden")) return "cat";
+      if (!document.getElementById("assetModal")?.classList.contains("hidden")) return "asset";
+      return "";
+    }
+
+    function makeAppHistoryState(tab, modal = "", txId = "") {
+      return {
+        app: APP_HISTORY_MARK,
+        tab: tab || "dashboard",
+        modal: modal || "",
+        txId: txId || ""
+      };
+    }
+
+    function hashFromAppState(state) {
+      const p = new URLSearchParams();
+      p.set("tab", state.tab || "dashboard");
+      if (state.modal) p.set("modal", state.modal);
+      if (state.txId) p.set("tx", state.txId);
+      return "#" + p.toString();
+    }
+
+    function parseAppStateFromHash() {
+      const raw = (location.hash || "").replace(/^#/, "").trim();
+      if (!raw) return makeAppHistoryState("dashboard");
+      const p = new URLSearchParams(raw);
+      return makeAppHistoryState(
+        p.get("tab") || "dashboard",
+        p.get("modal") || "",
+        p.get("tx") || ""
+      );
+    }
+
+    function appHistoryUrl(state) {
+      return location.pathname + location.search + hashFromAppState(state);
+    }
+
+    function replaceAppHistory(tab, modal = "", txId = "") {
+      const state = makeAppHistoryState(tab, modal, txId);
+      history.replaceState(state, "", appHistoryUrl(state));
+    }
+
+    function pushAppHistory(tab, modal = "", txId = "") {
+      if (historyRestoring || !isMainAppVisible()) return;
+      const state = makeAppHistoryState(tab, modal, txId);
+      const cur = history.state;
+      if (
+        cur?.app === APP_HISTORY_MARK
+        && cur.tab === state.tab
+        && cur.modal === state.modal
+        && cur.txId === state.txId
+      ) {
+        return;
+      }
+      history.pushState(state, "", appHistoryUrl(state));
+    }
+
+    function hideAllModalsUi() {
+      const tx = document.getElementById("txModal");
+      if (tx) {
+        tx.classList.add("hidden");
+        tx.setAttribute("aria-hidden", "true");
+      }
+      const delBtn = document.getElementById("txModalDeleteBtn");
+      if (delBtn) delBtn.classList.add("hidden");
+      const cat = document.getElementById("catModal");
+      if (cat) {
+        cat.classList.add("hidden");
+        cat.setAttribute("aria-hidden", "true");
+      }
+      resetCategoryForm();
+      const asset = document.getElementById("assetModal");
+      if (asset) {
+        asset.classList.add("hidden");
+        asset.setAttribute("aria-hidden", "true");
+      }
+      resetAssetForm();
+    }
+
+    function showTxModalUi(mode, txId) {
+      if (mode === "edit" && txId) {
+        fillTransactionForm(txId);
+        document.getElementById("txModalTitle").textContent = "거래 수정";
+      } else {
+        resetTransactionForm();
+        document.getElementById("txModalTitle").textContent = "거래 추가";
+      }
+      const m = document.getElementById("txModal");
+      m.classList.remove("hidden");
+      m.setAttribute("aria-hidden", "false");
+    }
+
+    function applyAppHistoryState(state) {
+      historyRestoring = true;
+      try {
+        switchTabUi(state.tab || "dashboard");
+        hideAllModalsUi();
+        if (state.modal === "tx") {
+          showTxModalUi(state.txId ? "edit" : "create", state.txId);
+        } else if (state.modal === "cat") {
+          const modal = document.getElementById("catModal");
+          if (modal) {
+            modal.classList.remove("hidden");
+            modal.setAttribute("aria-hidden", "false");
+          }
+        } else if (state.modal === "asset") {
+          const modal = document.getElementById("assetModal");
+          if (modal) {
+            modal.classList.remove("hidden");
+            modal.setAttribute("aria-hidden", "false");
+          }
+        }
+      } finally {
+        historyRestoring = false;
+      }
+    }
+
+    function onAppHistoryPopstate(event) {
+      if (!isMainAppVisible()) return;
+      const state = event.state?.app === APP_HISTORY_MARK
+        ? event.state
+        : parseAppStateFromHash();
+      applyAppHistoryState(state);
+    }
+
+    function closeModalViaHistory(modalKind) {
+      if (historyRestoring) {
+        hideAllModalsUi();
+        return;
+      }
+      if (history.state?.app === APP_HISTORY_MARK && history.state?.modal === modalKind) {
+        history.back();
+        return;
+      }
+      hideAllModalsUi();
+    }
+
+    function switchTabUi(name) {
       if (!name) return;
       document.body.setAttribute("data-active-tab", name);
       const mainTabs = new Set(["dashboard", "reports"]);
@@ -4059,7 +4206,18 @@
       }
     }
 
+    function switchTab(name) {
+      if (!name) return;
+      const prev = document.body.getAttribute("data-active-tab");
+      switchTabUi(name);
+      if (!historyRestoring && isMainAppVisible() && name !== prev) {
+        pushAppHistory(name, "", "");
+      }
+    }
+
     function initEvents() {
+      window.addEventListener("popstate", onAppHistoryPopstate);
+
       document.querySelectorAll(".tab-icon-btn").forEach((btn) => {
         btn.onclick = () => switchTab(btn.getAttribute("data-tab"));
       });
@@ -4113,12 +4271,13 @@
         if (e.target.id === "assetModal") closeAssetModal();
       };
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          closeTransactionModal();
-          closeCategoryModal();
-          closeAssetModal();
-          closeHeaderSettingsMenu();
+        if (e.key !== "Escape") return;
+        const modal = getTopModal();
+        if (modal) {
+          closeModalViaHistory(modal);
+          return;
         }
+        closeHeaderSettingsMenu();
       });
 
       ["reportMonth", "reportType"].forEach((id) => {
@@ -4522,13 +4681,17 @@
       showAppLoading();
       try {
         initViewportUiMode();
-        closeTransactionModal();
+        hideAllModalsUi();
         const txDateEl = document.getElementById("txDate");
         if (txDateEl) txDateEl.value = localDateInputString();
         document.getElementById("reportMonth").value = ymNow;
         initAuthGateUI();
         initEvents();
-        document.body.setAttribute("data-active-tab", "dashboard");
+        switchTabUi("dashboard");
+        if (location.hash) {
+          const hashState = parseAppStateFromHash();
+          if (hashState.tab) switchTabUi(hashState.tab);
+        }
         updateHeaderUserChrome();
         bindAmountInputFormatter();
         updateMonthLabel();
