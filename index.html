@@ -1832,7 +1832,7 @@
         </div>
         <div class="col-12 card">
           <h3>자산별 수입 · 지출 · 잔액</h3>
-          <p class="settings-hint" style="margin-top:2px;">자산명을 누르면 해당 자산 거래내역이 펼쳐집니다. 잔액은 전월 말일까지 해당 자산 누적에, 이번 달 수입·지출을 반영한 값입니다.</p>
+          <p class="settings-hint" style="margin-top:2px;">자산명을 누르면 해당 자산 거래내역이 펼쳐집니다. 수입·지출·잔액에는 계좌 이전이 포함됩니다. (상단 총 수입·지출은 계좌 이전 제외)</p>
           <div id="assetSummaryRows" class="asset-summary-list"></div>
         </div>
       </div>
@@ -3629,15 +3629,15 @@
       return l2.includes("계좌간 이전") || l3.includes("계좌간 이전");
     }
 
-    function sumIncomeAmount(rows) {
+    function sumIncomeAmount(rows, includeTransfers = false) {
       return rows
-        .filter((t) => t.type === "income" && !isAccountTransferTransaction(t))
+        .filter((t) => t.type === "income" && (includeTransfers || !isAccountTransferTransaction(t)))
         .reduce((s, t) => s + Number(t.amount || 0), 0);
     }
 
-    function sumExpenseAmount(rows) {
+    function sumExpenseAmount(rows, includeTransfers = false) {
       return rows
-        .filter((t) => t.type === "expense" && !isAccountTransferTransaction(t))
+        .filter((t) => t.type === "expense" && (includeTransfers || !isAccountTransferTransaction(t)))
         .reduce((s, t) => s + Number(t.amount || 0), 0);
     }
 
@@ -3790,8 +3790,8 @@
       wrap.innerHTML = "";
       sortedAssets.forEach((asset) => {
         const txList = byAsset.get(asset);
-        const income = sumIncomeAmount(txList);
-        const expense = sumExpenseAmount(txList);
+        const income = sumIncomeAmount(txList, true);
+        const expense = sumExpenseAmount(txList, true);
         const opening = balanceForAssetThroughDate(asset, prevEnd);
         const balance = opening + income - expense;
         const detailRows = txList
@@ -3814,7 +3814,7 @@
             <span class="sum-name">${asset}</span>
             <span class="sum-income">수입 ${formatCurrency(income)}</span>
             <span class="sum-expense">지출 ${formatCurrency(expense)}</span>
-            <span class="sum-balance" title="전월 말일까지 해당 자산 누적 잔액에, 이번 달 수입·지출을 반영한 값입니다.">잔액 ${formatCurrency(balance)}</span>
+            <span class="sum-balance" title="전월 말일까지 해당 자산 누적 잔액(계좌 이전 포함)에, 이번 달 수입·지출(계좌 이전 포함)을 반영한 값입니다.">잔액 ${formatCurrency(balance)}</span>
             <span class="sum-arrow">▼</span>
           </summary>
           <div class="asset-summary-tx">${detailRows || '<div class="asset-summary-empty">거래내역 없음</div>'}</div>
