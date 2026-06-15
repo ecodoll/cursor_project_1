@@ -299,6 +299,12 @@
     .cat-modal-panel .cat-add-set input {
       max-width: none;
       flex: 1 1 0;
+      min-width: 0;
+    }
+    .cat-modal-hint {
+      text-align: center;
+      margin: -6px 0 14px;
+      font-size: 12px;
     }
     .cat-modal-footer {
       display: flex;
@@ -2021,13 +2027,17 @@
     <div class="tx-modal-panel cat-modal-panel" role="dialog" aria-modal="true" aria-labelledby="catModalTitle">
       <form id="catForm">
         <h2 id="catModalTitle">카테고리 추가</h2>
+        <p class="auth-step-hint cat-modal-hint">기존 분류를 선택하거나 새 이름을 직접 입력할 수 있습니다.</p>
         <div class="cat-add-set">
           <span class="cat-inline-label" id="lblNewL1">대분류</span>
-          <input id="newL1" placeholder="예: 생활비" aria-labelledby="lblNewL1" required>
+          <input id="newL1" list="catModalL1List" placeholder="선택 또는 입력" aria-labelledby="lblNewL1" autocomplete="off" required>
+          <datalist id="catModalL1List"></datalist>
           <span class="cat-inline-label" id="lblNewL2">중분류</span>
-          <input id="newL2" placeholder="예: 식비" aria-labelledby="lblNewL2" required>
+          <input id="newL2" list="catModalL2List" placeholder="선택 또는 입력" aria-labelledby="lblNewL2" autocomplete="off" required>
+          <datalist id="catModalL2List"></datalist>
           <span class="cat-inline-label" id="lblNewL3">소분류</span>
-          <input id="newL3" placeholder="예: 외식" aria-labelledby="lblNewL3" required>
+          <input id="newL3" list="catModalL3List" placeholder="선택 또는 입력" aria-labelledby="lblNewL3" autocomplete="off" required>
+          <datalist id="catModalL3List"></datalist>
         </div>
         <input type="hidden" id="catEditId" value="">
         <div class="cat-modal-footer">
@@ -3336,6 +3346,50 @@
       return l1Map;
     }
 
+    function fillCategoryDatalist(listId, values) {
+      const dl = document.getElementById(listId);
+      if (!dl) return;
+      const sorted = [...new Set((values || []).map((v) => String(v || "").trim()).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "ko"));
+      dl.innerHTML = "";
+      sorted.forEach((v) => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        dl.appendChild(opt);
+      });
+    }
+
+    function refreshCategoryModalPicklists() {
+      const tree = buildCategoryHierarchy();
+      const l1Val = document.getElementById("newL1")?.value.trim() || "";
+      const l2Val = document.getElementById("newL2")?.value.trim() || "";
+
+      fillCategoryDatalist("catModalL1List", [...tree.keys()]);
+
+      let l2Options = [];
+      if (l1Val && tree.has(l1Val)) {
+        l2Options = [...tree.get(l1Val).keys()];
+      }
+      fillCategoryDatalist("catModalL2List", l2Options);
+
+      let l3Options = [];
+      if (l1Val && l2Val && tree.has(l1Val) && tree.get(l1Val).has(l2Val)) {
+        l3Options = [...tree.get(l1Val).get(l2Val)];
+      }
+      fillCategoryDatalist("catModalL3List", l3Options);
+    }
+
+    function initCategoryModalPicklists() {
+      if (initCategoryModalPicklists._done) return;
+      initCategoryModalPicklists._done = true;
+      ["newL1", "newL2", "newL3"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("input", refreshCategoryModalPicklists);
+        el.addEventListener("change", refreshCategoryModalPicklists);
+      });
+    }
+
     function wireCategoryCascade(l1, l2, l3, tree) {
       l1.onchange = () => {
         const innerL2 = [...(tree.get(l1.value)?.keys() || [])];
@@ -3531,6 +3585,7 @@
     function openCategoryModal() {
       const modal = document.getElementById("catModal");
       if (!modal) return;
+      refreshCategoryModalPicklists();
       modal.classList.remove("hidden");
       modal.setAttribute("aria-hidden", "false");
       const first = document.getElementById("newL1");
@@ -4148,6 +4203,7 @@
         } else if (state.modal === "cat") {
           const modal = document.getElementById("catModal");
           if (modal) {
+            refreshCategoryModalPicklists();
             modal.classList.remove("hidden");
             modal.setAttribute("aria-hidden", "false");
           }
@@ -4260,6 +4316,7 @@
       if (txMemoEl) txMemoEl.addEventListener("input", scheduleCategorySuggestFromMemo);
       const openCatBtn = document.getElementById("openCatModalBtn");
       if (openCatBtn) openCatBtn.onclick = openCategoryModalForCreate;
+      initCategoryModalPicklists();
       document.getElementById("catModalCancelBtn").onclick = closeCategoryModal;
       document.getElementById("catModal").onclick = (e) => {
         if (e.target.id === "catModal") closeCategoryModal();
