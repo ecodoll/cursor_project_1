@@ -977,6 +977,130 @@
       cursor: pointer;
     }
     canvas { width: 100%; max-height: 320px; }
+    .report-head-card h2 { margin-bottom: 12px; }
+    .report-filters {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: flex-end;
+      gap: 10px 12px;
+      margin-bottom: 14px;
+    }
+    .report-filters .field {
+      flex: 0 1 auto;
+      min-width: 0;
+      margin: 0;
+    }
+    .report-filters .field label {
+      font-size: 12px;
+      margin-bottom: 4px;
+      white-space: nowrap;
+    }
+    .report-filters input,
+    .report-filters select {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+    #reportMonth {
+      max-width: 132px;
+      min-width: 118px;
+    }
+    #reportType {
+      max-width: 96px;
+      min-width: 84px;
+    }
+    .report-kpi {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px 16px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, rgba(250, 245, 255, 0.95), rgba(243, 232, 255, 0.6));
+      border: 1px solid rgba(168, 85, 247, 0.14);
+    }
+    .report-kpi-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+    .report-kpi-value { font-size: 1.35rem; font-weight: 800; }
+    .report-kpi-value.income { color: var(--success); }
+    .report-kpi-value.expense { color: var(--danger); }
+    .report-card h3 { margin: 0 0 4px; font-size: 1.05rem; }
+    .report-card-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 12px;
+      margin-bottom: 10px;
+    }
+    .report-card-head h3 { margin: 0; flex: 1 1 140px; }
+    .report-filter-select {
+      min-width: 140px;
+      flex: 1 1 160px;
+      max-width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(168, 85, 247, 0.22);
+      background: #fff;
+    }
+    .report-chart-wrap {
+      position: relative;
+      width: 100%;
+      min-height: 220px;
+      height: 280px;
+    }
+    .report-chart-wrap--l1 {
+      height: 260px;
+      min-height: 220px;
+    }
+    .report-chart-wrap canvas {
+      max-height: none;
+    }
+    .report-legend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .report-legend-item {
+      display: grid;
+      grid-template-columns: 10px 1fr auto auto;
+      gap: 8px 10px;
+      align-items: center;
+      font-size: 13px;
+    }
+    .report-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .report-legend-name { font-weight: 600; color: var(--text); min-width: 0; }
+    .report-legend-amt { font-weight: 700; white-space: nowrap; }
+    .report-legend-pct {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .report-bar-track {
+      grid-column: 1 / -1;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(124, 58, 237, 0.1);
+      overflow: hidden;
+    }
+    .report-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      min-width: 2px;
+    }
+    .report-empty {
+      color: var(--muted);
+      font-size: 14px;
+      padding: 24px 8px;
+      text-align: center;
+    }
     .auth-overlay {
       position: fixed;
       inset: 0;
@@ -1714,6 +1838,50 @@
     body.mobile-ui canvas {
       max-height: 260px;
     }
+    body.mobile-ui .report-filters {
+      flex-wrap: nowrap;
+      gap: 8px;
+    }
+    body.mobile-ui .report-filters .field label {
+      font-size: 11px;
+    }
+    body.mobile-ui #reportMonth {
+      max-width: none;
+      min-width: 0;
+      flex: 1 1 0;
+    }
+    body.mobile-ui #reportType {
+      max-width: none;
+      min-width: 0;
+      flex: 0 0 88px;
+    }
+    body.mobile-ui .report-card-head {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    body.mobile-ui .report-filter-select {
+      width: 100%;
+      min-height: 44px;
+    }
+    body.mobile-ui .report-kpi-value {
+      font-size: 1.2rem;
+    }
+    body.mobile-ui .report-chart-wrap {
+      height: 240px;
+    }
+    body.mobile-ui .report-legend-item {
+      grid-template-columns: 10px 1fr auto;
+      grid-template-rows: auto auto;
+    }
+    body.mobile-ui .report-legend-pct {
+      grid-column: 3;
+      grid-row: 1;
+    }
+    body.mobile-ui .report-legend-amt {
+      grid-column: 2 / -1;
+      grid-row: 2;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -1926,14 +2094,14 @@
 
     <section id="tab-reports" class="tab-panel hidden">
       <div class="grid">
-        <div class="col-12 card">
+        <div class="col-12 card report-head-card">
           <h2>월간 리포트</h2>
-          <div class="row">
-            <div class="field col-3">
+          <div class="report-filters">
+            <div class="field">
               <label for="reportMonth">기준 월</label>
               <input id="reportMonth" type="month">
             </div>
-            <div class="field col-3">
+            <div class="field">
               <label for="reportType">분석 대상</label>
               <select id="reportType">
                 <option value="expense">지출</option>
@@ -1941,22 +2109,48 @@
               </select>
             </div>
           </div>
+          <div class="report-kpi">
+            <span class="report-kpi-label" id="reportKpiLabel">이번 달 총 지출</span>
+            <span class="report-kpi-value expense" id="reportMonthTotal">0원</span>
+          </div>
         </div>
-        <div class="col-6 card">
-          <h3>대분류 지출/수입 비중</h3>
-          <canvas id="chartL1"></canvas>
+
+        <div class="col-12 card report-card">
+          <h3>대분류 비중</h3>
+          <p class="settings-hint" style="margin-top:2px;">선택한 월 총액 대비 대분류별 금액·비율 (계좌 이전 제외)</p>
+          <div id="reportL1ChartWrap" class="report-chart-wrap report-chart-wrap--l1">
+            <canvas id="chartL1"></canvas>
+          </div>
         </div>
-        <div class="col-6 card">
-          <h3>중분류 상위 항목</h3>
-          <canvas id="chartL2"></canvas>
+
+        <div class="col-12 card report-card">
+          <div class="report-card-head">
+            <h3>중분류 추이 (최근 6개월)</h3>
+            <select id="reportL2Filter" class="report-filter-select" aria-label="중분류 선택"></select>
+          </div>
+          <p class="settings-hint" style="margin-top:0;">선택한 중분류의 월별 변동 (계좌 이전 제외)</p>
+          <div class="report-chart-wrap">
+            <canvas id="chartL2Trend"></canvas>
+          </div>
         </div>
-        <div class="col-12 card">
-          <h3>소분류 월별 추이(최근 6개월)</h3>
-          <canvas id="chartL3Trend"></canvas>
+
+        <div class="col-12 card report-card">
+          <div class="report-card-head">
+            <h3>소분류 추이 (최근 6개월)</h3>
+            <select id="reportL3Filter" class="report-filter-select" aria-label="소분류 선택"></select>
+          </div>
+          <p class="settings-hint" style="margin-top:0;">선택한 소분류의 월별 변동 (계좌 이전 제외)</p>
+          <div class="report-chart-wrap">
+            <canvas id="chartL3Trend"></canvas>
+          </div>
         </div>
-        <div class="col-12 card">
+
+        <div class="col-12 card report-card">
           <h3>자산 종류별 합계</h3>
-          <canvas id="chartAssetType"></canvas>
+          <p class="settings-hint" style="margin-top:2px;">선택한 월·유형 기준 (계좌 이전 제외)</p>
+          <div class="report-chart-wrap">
+            <canvas id="chartAssetType"></canvas>
+          </div>
         </div>
       </div>
     </section>
@@ -2150,7 +2344,7 @@
     let channel = null;
     let householdCode = "";
     let refreshing = false;
-    let charts = { l1: null, l2: null, l3: null, asset: null };
+    let charts = { l1: null, l2Trend: null, l3Trend: null, asset: null };
     let lastClientUrl = "";
     let lastClientKey = "";
     let currentUserEmail = "";
@@ -3953,87 +4147,300 @@
       }, {});
     }
 
-    function buildReports() {
-      const month = document.getElementById("reportMonth").value || ymNow;
-      const type = document.getElementById("reportType").value;
-      const rows = state.transactions
-        .filter((t) => monthKeyFromDate(t.date) === month && t.type === type && !isAccountTransferTransaction(t));
+    const REPORT_CHART_COLORS = [
+      "#7c3aed", "#db2777", "#0891b2", "#059669", "#d97706",
+      "#dc2626", "#6366f1", "#0d9488", "#ca8a04", "#9333ea"
+    ];
 
-      const byL1 = aggregateBy(rows, "l1");
-      const byL2 = aggregateBy(rows, "l2");
-      const byAsset = aggregateBy(rows, "assetType");
-
-      const labelsL1 = Object.keys(byL1);
-      const valuesL1 = Object.values(byL1);
-      const l2Pairs = Object.entries(byL2).sort((a, b) => b[1] - a[1]).slice(0, 10);
-
+    function getReportTrendMonths(monthYm) {
       const trendMonths = [];
-      const base = new Date(month + "-01");
+      const base = new Date(String(monthYm) + "-01");
       for (let i = 5; i >= 0; i--) {
         const d = new Date(base.getFullYear(), base.getMonth() - i, 1);
         trendMonths.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
       }
-      const allL3 = [...new Set(rows.map((r) => r.l3))].slice(0, 6);
-      const datasets = allL3.map((name, idx) => {
-        const color = `hsl(${(idx * 60) % 360} 70% 45%)`;
-        return {
-          label: name,
-          borderColor: color,
-          backgroundColor: color,
-          fill: false,
-          data: trendMonths.map((m) => {
-            const monthL3 = state.transactions.filter(
-              (t) => monthKeyFromDate(t.date) === m && t.type === type && t.l3 === name && !isAccountTransferTransaction(t)
-            );
-            return type === "income" ? sumIncomeAmount(monthL3) : sumExpenseAmount(monthL3);
-          })
-        };
+      return trendMonths;
+    }
+
+    function formatReportMonthLabel(monthYm) {
+      const [y, m] = String(monthYm).split("-");
+      return `${y}년 ${parseInt(m, 10)}월`;
+    }
+
+    function formatTrendMonthShort(monthYm) {
+      const [, m] = String(monthYm).split("-");
+      return `${parseInt(m, 10)}월`;
+    }
+
+    function getMonthReportRows(month, type) {
+      return state.transactions.filter(
+        (t) => monthKeyFromDate(t.date) === month && t.type === type && !isAccountTransferTransaction(t)
+      );
+    }
+
+    function sumCategoryAmountInMonth(month, type, key, value) {
+      const rows = state.transactions.filter(
+        (t) =>
+          monthKeyFromDate(t.date) === month
+          && t.type === type
+          && !isAccountTransferTransaction(t)
+          && String(t[key] || "").trim() === value
+      );
+      return rows.reduce((s, t) => s + Number(t.amount || 0), 0);
+    }
+
+    function fillReportSelect(selectEl, values, preferred) {
+      if (!selectEl) return "";
+      const prev = preferred || selectEl.value;
+      selectEl.innerHTML = "";
+      if (!values.length) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "(표시할 항목 없음)";
+        selectEl.appendChild(opt);
+        return "";
+      }
+      values.forEach((v) => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        selectEl.appendChild(opt);
       });
+      if (prev && values.includes(prev)) selectEl.value = prev;
+      else selectEl.value = values[0];
+      return selectEl.value;
+    }
 
-      if (charts.l1) charts.l1.destroy();
-      if (charts.l2) charts.l2.destroy();
-      if (charts.l3) charts.l3.destroy();
-      if (charts.asset) charts.asset.destroy();
+    function rankedCategoryKeys(month, type, key) {
+      const byKey = aggregateBy(getMonthReportRows(month, type), key);
+      return Object.entries(byKey)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name]) => name);
+    }
 
-      charts.l1 = new Chart(document.getElementById("chartL1"), {
-        type: "doughnut",
-        data: {
-          labels: labelsL1.length ? labelsL1 : ["데이터 없음"],
-          datasets: [{ data: valuesL1.length ? valuesL1 : [1] }]
+    function allCategoryKeys(type, key) {
+      const set = new Set();
+      state.transactions.forEach((t) => {
+        if (t.type === type && !isAccountTransferTransaction(t)) {
+          const v = String(t[key] || "").trim();
+          if (v) set.add(v);
         }
       });
-      charts.l2 = new Chart(document.getElementById("chartL2"), {
-        type: "bar",
-        data: {
-          labels: l2Pairs.length ? l2Pairs.map((x) => x[0]) : ["데이터 없음"],
-          datasets: [{
-            label: "금액",
-            data: l2Pairs.length ? l2Pairs.map((x) => x[1]) : [0],
-            backgroundColor: "#c084fc"
-          }]
+      return [...set].sort((a, b) => a.localeCompare(b, "ko"));
+    }
+
+    function chartBaseOptions(extra = {}) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label(ctx) {
+                const v = ctx.parsed.y ?? ctx.parsed.x ?? ctx.raw ?? 0;
+                return formatCurrency(v);
+              }
+            }
+          }
         },
-        options: { plugins: { legend: { display: false } } }
-      });
-      charts.l3 = new Chart(document.getElementById("chartL3Trend"), {
-        type: "line",
-        data: {
-          labels: trendMonths,
-          datasets: datasets.length ? datasets : [{ label: "데이터 없음", data: trendMonths.map(() => 0), borderColor: "#94a3b8" }]
-        },
-        options: { tension: 0.25 }
-      });
+        ...extra
+      };
+    }
+
+    function buildReports() {
+      const month = document.getElementById("reportMonth").value || ymNow;
+      const type = document.getElementById("reportType").value;
+      const typeLabel = type === "income" ? "수입" : "지출";
+      const rows = getMonthReportRows(month, type);
+      const monthTotal = rows.reduce((s, t) => s + Number(t.amount || 0), 0);
+
+      const kpiLabel = document.getElementById("reportKpiLabel");
+      const kpiVal = document.getElementById("reportMonthTotal");
+      if (kpiLabel) kpiLabel.textContent = `${formatReportMonthLabel(month)} 총 ${typeLabel}`;
+      if (kpiVal) {
+        kpiVal.textContent = formatCurrency(monthTotal);
+        kpiVal.className = `report-kpi-value ${type}`;
+      }
+
+      const byL1 = aggregateBy(rows, "l1");
+      const l1Pairs = Object.entries(byL1).sort((a, b) => b[1] - a[1]);
+      const byAsset = aggregateBy(rows, "assetType");
+      const trendMonths = getReportTrendMonths(month);
+      const trendLabels = trendMonths.map(formatTrendMonthShort);
+
+      const l2Ranked = rankedCategoryKeys(month, type, "l2");
+      const l2All = allCategoryKeys(type, "l2");
+      const l2Options = l2Ranked.length ? l2Ranked : l2All;
+      const l2Sel = document.getElementById("reportL2Filter");
+      const selectedL2 = fillReportSelect(l2Sel, l2Options, l2Sel?.value);
+
+      const l3Ranked = rankedCategoryKeys(month, type, "l3");
+      const l3All = allCategoryKeys(type, "l3");
+      const l3Options = l3Ranked.length ? l3Ranked : l3All;
+      const l3Sel = document.getElementById("reportL3Filter");
+      const selectedL3 = fillReportSelect(l3Sel, l3Options, l3Sel?.value);
+
+      if (charts.l1) charts.l1.destroy();
+      if (charts.l2Trend) charts.l2Trend.destroy();
+      if (charts.l3Trend) charts.l3Trend.destroy();
+      if (charts.asset) charts.asset.destroy();
+
+      const l1Canvas = document.getElementById("chartL1");
+      if (l1Pairs.length && monthTotal) {
+        charts.l1 = new Chart(l1Canvas, {
+          type: "bar",
+          data: {
+            labels: l1Pairs.map((x) => x[0]),
+            datasets: [{
+              label: typeLabel,
+              data: l1Pairs.map((x) => x[1]),
+              backgroundColor: l1Pairs.map((_, i) => REPORT_CHART_COLORS[i % REPORT_CHART_COLORS.length]),
+              borderRadius: 6,
+              maxBarThickness: 48
+            }]
+          },
+          options: chartBaseOptions({
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: (v) => {
+                    const n = Number(v);
+                    if (n >= 10000) return `${Math.round(n / 10000)}만`;
+                    if (n >= 1000) return `${Math.round(n / 1000)}천`;
+                    return n;
+                  }
+                },
+                grid: { color: "rgba(124, 58, 237, 0.08)" }
+              },
+              x: {
+                grid: { display: false },
+                ticks: {
+                  maxRotation: 45,
+                  minRotation: 0,
+                  autoSkip: false,
+                  font: { size: 11 }
+                }
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label(ctx) {
+                    const amt = Number(ctx.raw || 0);
+                    const pct = monthTotal ? (amt / monthTotal * 100).toFixed(1) : 0;
+                    return `${formatCurrency(amt)} (${pct}%)`;
+                  }
+                }
+              }
+            }
+          })
+        });
+      }
+
+      const l2Canvas = document.getElementById("chartL2Trend");
+      if (selectedL2) {
+        const l2Data = trendMonths.map((m) => sumCategoryAmountInMonth(m, type, "l2", selectedL2));
+        charts.l2Trend = new Chart(l2Canvas, {
+          type: "line",
+          data: {
+            labels: trendLabels,
+            datasets: [{
+              label: selectedL2,
+              data: l2Data,
+              borderColor: "#7c3aed",
+              backgroundColor: "rgba(124, 58, 237, 0.12)",
+              fill: true,
+              tension: 0.3,
+              pointRadius: 4,
+              pointHoverRadius: 6
+            }]
+          },
+          options: chartBaseOptions({
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: "rgba(124, 58, 237, 0.08)" },
+                ticks: {
+                  callback: (v) => {
+                    const n = Number(v);
+                    if (n >= 10000) return `${Math.round(n / 10000)}만`;
+                    return n;
+                  }
+                }
+              },
+              x: { grid: { display: false } }
+            },
+            plugins: {
+              legend: { display: true, position: "bottom" }
+            }
+          })
+        });
+      }
+
+      const l3Canvas = document.getElementById("chartL3Trend");
+      if (selectedL3) {
+        const l3Data = trendMonths.map((m) => sumCategoryAmountInMonth(m, type, "l3", selectedL3));
+        charts.l3Trend = new Chart(l3Canvas, {
+          type: "line",
+          data: {
+            labels: trendLabels,
+            datasets: [{
+              label: selectedL3,
+              data: l3Data,
+              borderColor: "#db2777",
+              backgroundColor: "rgba(219, 39, 119, 0.1)",
+              fill: true,
+              tension: 0.3,
+              pointRadius: 4,
+              pointHoverRadius: 6
+            }]
+          },
+          options: chartBaseOptions({
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: "rgba(124, 58, 237, 0.08)" },
+                ticks: {
+                  callback: (v) => {
+                    const n = Number(v);
+                    if (n >= 10000) return `${Math.round(n / 10000)}만`;
+                    return n;
+                  }
+                }
+              },
+              x: { grid: { display: false } }
+            },
+            plugins: {
+              legend: { display: true, position: "bottom" }
+            }
+          })
+        });
+      }
+
       const assetPairs = Object.entries(byAsset).sort((a, b) => b[1] - a[1]);
       charts.asset = new Chart(document.getElementById("chartAssetType"), {
         type: "bar",
         data: {
           labels: assetPairs.length ? assetPairs.map((x) => x[0] || "미지정") : ["데이터 없음"],
           datasets: [{
-            label: "금액",
+            label: typeLabel,
             data: assetPairs.length ? assetPairs.map((x) => x[1]) : [0],
-            backgroundColor: "#f472b6"
+            backgroundColor: assetPairs.map((_, i) => REPORT_CHART_COLORS[i % REPORT_CHART_COLORS.length]),
+            borderRadius: 6
           }]
         },
-        options: { plugins: { legend: { display: false } } }
+        options: chartBaseOptions({
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: "rgba(124, 58, 237, 0.08)" }
+            },
+            x: { grid: { display: false } }
+          }
+        })
       });
     }
 
@@ -4337,8 +4744,9 @@
         closeHeaderSettingsMenu();
       });
 
-      ["reportMonth", "reportType"].forEach((id) => {
-        document.getElementById(id).onchange = buildReports;
+      ["reportMonth", "reportType", "reportL2Filter", "reportL3Filter"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.onchange = buildReports;
       });
 
       document.getElementById("txForm").onsubmit = async (e) => {
