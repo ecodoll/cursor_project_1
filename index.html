@@ -287,7 +287,6 @@
       font-size: 1.1rem;
       text-align: center;
     }
-    .cat-modal-panel .cat-add-set,
     .cat-modal-panel .asset-modal-add-set {
       margin-bottom: 18px;
       justify-content: center;
@@ -296,11 +295,27 @@
       max-width: 280px;
       flex: 1 1 200px;
     }
-    .cat-modal-panel .cat-add-set input {
-      max-width: none;
-      flex: 1 1 0;
-      min-width: 0;
+    .cat-modal-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 18px;
     }
+    .cat-modal-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .cat-modal-select,
+    .cat-modal-custom {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 15px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(168, 85, 247, 0.22);
+      box-sizing: border-box;
+    }
+    .cat-modal-custom.hidden { display: none; }
     .cat-modal-hint {
       text-align: center;
       margin: -6px 0 14px;
@@ -985,29 +1000,56 @@
       gap: 10px 12px;
       margin-bottom: 14px;
     }
-    .report-filters .field {
+    .report-filters--all {
+      display: grid;
+      grid-template-columns: 118px 84px minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-areas: "month type l2 l3";
+      gap: 8px 10px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+    .report-field-month { grid-area: month; }
+    .report-field-type { grid-area: type; }
+    .report-field-l2 { grid-area: l2; }
+    .report-field-l3 { grid-area: l3; }
+    .report-filters .field,
+    .report-filters--all .field {
       flex: 0 1 auto;
       min-width: 0;
       margin: 0;
     }
-    .report-filters .field label {
-      font-size: 12px;
-      margin-bottom: 4px;
+    .report-filters .field label,
+    .report-filters--all .field label {
+      font-size: 11px;
+      margin-bottom: 3px;
       white-space: nowrap;
     }
     .report-filters input,
-    .report-filters select {
+    .report-filters select,
+    .report-filters--all input,
+    .report-filters--all select {
       width: 100%;
-      padding: 8px 10px;
+      padding: 7px 8px;
+      font-size: 13px;
+      min-height: 36px;
+      height: 36px;
+      box-sizing: border-box;
+    }
+    .report-filters--all .report-filter-select {
+      min-width: 0;
+      max-width: none;
+      flex: none;
+      min-height: 36px;
+      padding: 7px 8px;
       font-size: 13px;
     }
     #reportMonth {
-      max-width: 132px;
-      min-width: 118px;
+      max-width: none;
+      min-width: 0;
     }
     #reportType {
-      max-width: 96px;
-      min-width: 84px;
+      max-width: none;
+      min-width: 0;
     }
     .report-kpi {
       display: flex;
@@ -1689,14 +1731,35 @@
       width: 100%;
       min-width: 100%;
     }
-    body.mobile-ui table.tx-single-line,
-    body.mobile-ui table.cat-single-line {
+    body.mobile-ui table.tx-single-line {
       min-width: 900px;
       table-layout: auto;
     }
     body.mobile-ui table.cat-single-line {
-      min-width: 480px;
+      min-width: 0;
+      width: 100%;
+      table-layout: fixed;
     }
+    body.mobile-ui .cat-table-wrap {
+      overflow-x: visible;
+    }
+    body.mobile-ui table.cat-single-line th,
+    body.mobile-ui table.cat-single-line tbody td {
+      white-space: normal;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+      font-size: 11px;
+      padding: 6px 3px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    body.mobile-ui table.cat-single-line th:nth-child(1),
+    body.mobile-ui table.cat-single-line td.cat-merge-l1 { width: 22%; }
+    body.mobile-ui table.cat-single-line th:nth-child(2),
+    body.mobile-ui table.cat-single-line td.cat-merge-l2 { width: 24%; }
+    body.mobile-ui table.cat-single-line th:nth-child(3) { width: 26%; }
+    body.mobile-ui table.cat-single-line th:nth-child(4),
+    body.mobile-ui table.cat-single-line td.actions { width: 28%; }
     body.mobile-ui table.tx-single-line thead,
     body.mobile-ui table.cat-single-line thead {
       display: table-header-group;
@@ -1711,14 +1774,17 @@
       background: transparent;
       box-shadow: none;
     }
-    body.mobile-ui table.tx-single-line tbody td,
-    body.mobile-ui table.cat-single-line tbody td {
+    body.mobile-ui table.tx-single-line tbody td {
       display: table-cell;
       border-bottom: 1px solid var(--border);
       padding: 10px 8px;
       font-size: 14px;
       text-align: left;
       white-space: nowrap;
+    }
+    body.mobile-ui table.cat-single-line tbody td {
+      display: table-cell;
+      border-bottom: 1px solid var(--border);
     }
     body.mobile-ui table.tx-single-line tbody td[data-label]::before,
     body.mobile-ui table.cat-single-line tbody td[data-label]::before {
@@ -1741,11 +1807,19 @@
       content: none;
     }
     body.mobile-ui table.tx-single-line tbody td.actions button,
-    body.mobile-ui table.cat-single-line tbody td.actions button,
     body.mobile-ui table.asset-list-table tbody td.actions button {
       width: auto;
       min-width: 58px;
       min-height: 36px;
+      flex: none;
+    }
+    body.mobile-ui table.cat-single-line tbody td.actions button {
+      width: auto;
+      min-width: 34px;
+      min-height: 28px;
+      padding: 2px 4px;
+      font-size: 10px;
+      margin: 0 1px;
       flex: none;
     }
     body.mobile-ui table.asset-list-table {
@@ -1811,9 +1885,13 @@
       border-radius: 0;
       padding: 16px 14px 20px;
     }
-    body.mobile-ui .cat-modal-panel .cat-add-set {
-      justify-content: center;
-      padding-bottom: 4px;
+    body.mobile-ui .cat-modal-fields {
+      gap: 10px;
+    }
+    body.mobile-ui .cat-modal-select,
+    body.mobile-ui .cat-modal-custom {
+      min-height: 44px;
+      font-size: 16px;
     }
     body.mobile-ui .cat-modal-footer button {
       flex: 0 0 auto;
@@ -1838,30 +1916,24 @@
     body.mobile-ui canvas {
       max-height: 260px;
     }
-    body.mobile-ui .report-filters {
-      flex-wrap: nowrap;
-      gap: 8px;
+    body.mobile-ui .report-filters--all {
+      grid-template-columns: 1.15fr 0.85fr;
+      grid-template-areas:
+        "month type"
+        "l2 l3";
+      gap: 6px 8px;
     }
-    body.mobile-ui .report-filters .field label {
-      font-size: 11px;
+    body.mobile-ui .report-filters--all input,
+    body.mobile-ui .report-filters--all select {
+      min-height: 34px;
+      height: 34px;
+      padding: 5px 6px;
+      font-size: 12px;
     }
-    body.mobile-ui #reportMonth {
-      max-width: none;
-      min-width: 0;
-      flex: 1 1 0;
-    }
-    body.mobile-ui #reportType {
-      max-width: none;
-      min-width: 0;
-      flex: 0 0 88px;
-    }
-    body.mobile-ui .report-card-head {
-      flex-direction: column;
-      align-items: stretch;
-    }
-    body.mobile-ui .report-filter-select {
-      width: 100%;
-      min-height: 44px;
+    body.mobile-ui .report-filters--all .report-filter-select {
+      min-height: 34px;
+      padding: 5px 6px;
+      font-size: 12px;
     }
     body.mobile-ui .report-kpi-value {
       font-size: 1.2rem;
@@ -2096,17 +2168,25 @@
       <div class="grid">
         <div class="col-12 card report-head-card">
           <h2>월간 리포트</h2>
-          <div class="report-filters">
-            <div class="field">
+          <div class="report-filters report-filters--all">
+            <div class="field report-field-month">
               <label for="reportMonth">기준 월</label>
               <input id="reportMonth" type="month">
             </div>
-            <div class="field">
+            <div class="field report-field-type">
               <label for="reportType">분석 대상</label>
               <select id="reportType">
                 <option value="expense">지출</option>
                 <option value="income">수입</option>
               </select>
+            </div>
+            <div class="field report-field-l2">
+              <label for="reportL2Filter">중분류</label>
+              <select id="reportL2Filter" class="report-filter-select" aria-label="중분류 선택"></select>
+            </div>
+            <div class="field report-field-l3">
+              <label for="reportL3Filter">소분류</label>
+              <select id="reportL3Filter" class="report-filter-select" aria-label="소분류 선택"></select>
             </div>
           </div>
           <div class="report-kpi">
@@ -2124,22 +2204,16 @@
         </div>
 
         <div class="col-12 card report-card">
-          <div class="report-card-head">
-            <h3>중분류 추이 (최근 6개월)</h3>
-            <select id="reportL2Filter" class="report-filter-select" aria-label="중분류 선택"></select>
-          </div>
-          <p class="settings-hint" style="margin-top:0;">선택한 중분류의 월별 변동 (계좌 이전 제외)</p>
+          <h3>중분류 추이 (최근 6개월)</h3>
+          <p class="settings-hint" style="margin-top:2px;">선택한 중분류의 월별 변동 (계좌 이전 제외)</p>
           <div class="report-chart-wrap">
             <canvas id="chartL2Trend"></canvas>
           </div>
         </div>
 
         <div class="col-12 card report-card">
-          <div class="report-card-head">
-            <h3>소분류 추이 (최근 6개월)</h3>
-            <select id="reportL3Filter" class="report-filter-select" aria-label="소분류 선택"></select>
-          </div>
-          <p class="settings-hint" style="margin-top:0;">선택한 소분류의 월별 변동 (계좌 이전 제외)</p>
+          <h3>소분류 추이 (최근 6개월)</h3>
+          <p class="settings-hint" style="margin-top:2px;">선택한 소분류의 월별 변동 (계좌 이전 제외)</p>
           <div class="report-chart-wrap">
             <canvas id="chartL3Trend"></canvas>
           </div>
@@ -2221,17 +2295,23 @@
     <div class="tx-modal-panel cat-modal-panel" role="dialog" aria-modal="true" aria-labelledby="catModalTitle">
       <form id="catForm">
         <h2 id="catModalTitle">카테고리 추가</h2>
-        <p class="auth-step-hint cat-modal-hint">기존 분류를 선택하거나 새 이름을 직접 입력할 수 있습니다.</p>
-        <div class="cat-add-set">
-          <span class="cat-inline-label" id="lblNewL1">대분류</span>
-          <input id="newL1" list="catModalL1List" placeholder="선택 또는 입력" aria-labelledby="lblNewL1" autocomplete="off" required>
-          <datalist id="catModalL1List"></datalist>
-          <span class="cat-inline-label" id="lblNewL2">중분류</span>
-          <input id="newL2" list="catModalL2List" placeholder="선택 또는 입력" aria-labelledby="lblNewL2" autocomplete="off" required>
-          <datalist id="catModalL2List"></datalist>
-          <span class="cat-inline-label" id="lblNewL3">소분류</span>
-          <input id="newL3" list="catModalL3List" placeholder="선택 또는 입력" aria-labelledby="lblNewL3" autocomplete="off" required>
-          <datalist id="catModalL3List"></datalist>
+        <p class="auth-step-hint cat-modal-hint">기존 분류를 선택하거나 「직접 입력」으로 새 이름을 추가할 수 있습니다.</p>
+        <div class="cat-modal-fields">
+          <div class="cat-modal-field">
+            <label class="cat-inline-label" for="newL1Pick">대분류</label>
+            <select id="newL1Pick" class="cat-modal-select" required></select>
+            <input id="newL1" type="text" class="cat-modal-custom hidden" placeholder="새 대분류 입력" autocomplete="off">
+          </div>
+          <div class="cat-modal-field">
+            <label class="cat-inline-label" for="newL2Pick">중분류</label>
+            <select id="newL2Pick" class="cat-modal-select" required></select>
+            <input id="newL2" type="text" class="cat-modal-custom hidden" placeholder="새 중분류 입력" autocomplete="off">
+          </div>
+          <div class="cat-modal-field">
+            <label class="cat-inline-label" for="newL3Pick">소분류</label>
+            <select id="newL3Pick" class="cat-modal-select" required></select>
+            <input id="newL3" type="text" class="cat-modal-custom hidden" placeholder="새 소분류 입력" autocomplete="off">
+          </div>
         </div>
         <input type="hidden" id="catEditId" value="">
         <div class="cat-modal-footer">
@@ -3540,47 +3620,91 @@
       return l1Map;
     }
 
-    function fillCategoryDatalist(listId, values) {
-      const dl = document.getElementById(listId);
-      if (!dl) return;
-      const sorted = [...new Set((values || []).map((v) => String(v || "").trim()).filter(Boolean))]
+    const CAT_MODAL_CUSTOM = "__new__";
+
+    function uniqueCategoryFieldValues(field) {
+      return [...new Set(state.categories.map((c) => String(c[field] || "").trim()).filter(Boolean))]
         .sort((a, b) => a.localeCompare(b, "ko"));
-      dl.innerHTML = "";
-      sorted.forEach((v) => {
-        const opt = document.createElement("option");
-        opt.value = v;
-        dl.appendChild(opt);
+    }
+
+    function syncCatModalPickUI(pickId) {
+      const pick = document.getElementById(pickId);
+      const input = document.getElementById(pickId.replace("Pick", ""));
+      if (!pick || !input) return;
+      const isCustom = pick.value === CAT_MODAL_CUSTOM;
+      input.classList.toggle("hidden", !isCustom);
+      if (!isCustom) input.value = "";
+    }
+
+    function getCatModalFieldValue(pickId) {
+      const pick = document.getElementById(pickId);
+      const input = document.getElementById(pickId.replace("Pick", ""));
+      if (!pick) return "";
+      if (pick.value === CAT_MODAL_CUSTOM) return input?.value.trim() || "";
+      return pick.value.trim();
+    }
+
+    function setCatModalFieldValue(pickId, val) {
+      const pick = document.getElementById(pickId);
+      const input = document.getElementById(pickId.replace("Pick", ""));
+      if (!pick || !input) return;
+      const v = String(val || "").trim();
+      const hasOption = [...pick.options].some((o) => o.value === v);
+      if (v && hasOption) {
+        pick.value = v;
+        input.classList.add("hidden");
+        input.value = "";
+      } else if (v) {
+        pick.value = CAT_MODAL_CUSTOM;
+        input.classList.remove("hidden");
+        input.value = v;
+      } else {
+        pick.value = "";
+        input.classList.add("hidden");
+        input.value = "";
+      }
+    }
+
+    function fillCatModalSelect(selectId, values) {
+      const sel = document.getElementById(selectId);
+      if (!sel) return;
+      sel.innerHTML = "";
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = "선택…";
+      sel.appendChild(empty);
+      values.forEach((v) => {
+        const o = document.createElement("option");
+        o.value = v;
+        o.textContent = v;
+        sel.appendChild(o);
       });
+      const custom = document.createElement("option");
+      custom.value = CAT_MODAL_CUSTOM;
+      custom.textContent = "직접 입력";
+      sel.appendChild(custom);
     }
 
     function refreshCategoryModalPicklists() {
-      const tree = buildCategoryHierarchy();
-      const l1Val = document.getElementById("newL1")?.value.trim() || "";
-      const l2Val = document.getElementById("newL2")?.value.trim() || "";
-
-      fillCategoryDatalist("catModalL1List", [...tree.keys()]);
-
-      let l2Options = [];
-      if (l1Val && tree.has(l1Val)) {
-        l2Options = [...tree.get(l1Val).keys()];
-      }
-      fillCategoryDatalist("catModalL2List", l2Options);
-
-      let l3Options = [];
-      if (l1Val && l2Val && tree.has(l1Val) && tree.get(l1Val).has(l2Val)) {
-        l3Options = [...tree.get(l1Val).get(l2Val)];
-      }
-      fillCategoryDatalist("catModalL3List", l3Options);
+      const fields = [
+        ["newL1Pick", "l1"],
+        ["newL2Pick", "l2"],
+        ["newL3Pick", "l3"]
+      ];
+      fields.forEach(([pickId, field]) => {
+        const current = getCatModalFieldValue(pickId);
+        fillCatModalSelect(pickId, uniqueCategoryFieldValues(field));
+        setCatModalFieldValue(pickId, current);
+      });
     }
 
     function initCategoryModalPicklists() {
       if (initCategoryModalPicklists._done) return;
       initCategoryModalPicklists._done = true;
-      ["newL1", "newL2", "newL3"].forEach((id) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.addEventListener("input", refreshCategoryModalPicklists);
-        el.addEventListener("change", refreshCategoryModalPicklists);
+      ["newL1Pick", "newL2Pick", "newL3Pick"].forEach((id) => {
+        const pick = document.getElementById(id);
+        if (!pick) return;
+        pick.addEventListener("change", () => syncCatModalPickUI(id));
       });
     }
 
@@ -3770,6 +3894,7 @@
     function resetCategoryForm() {
       const form = document.getElementById("catForm");
       if (form) form.reset();
+      ["newL1Pick", "newL2Pick", "newL3Pick"].forEach((id) => setCatModalFieldValue(id, ""));
       const editId = document.getElementById("catEditId");
       if (editId) editId.value = "";
       const title = document.getElementById("catModalTitle");
@@ -3782,7 +3907,7 @@
       refreshCategoryModalPicklists();
       modal.classList.remove("hidden");
       modal.setAttribute("aria-hidden", "false");
-      const first = document.getElementById("newL1");
+      const first = document.getElementById("newL1Pick");
       if (first) setTimeout(() => first.focus(), 50);
       if (!historyRestoring) {
         const tab = document.body.getAttribute("data-active-tab") || "categories";
@@ -3801,13 +3926,13 @@
 
     function beginCategoryEdit(cat) {
       if (!cat) return;
-      document.getElementById("newL1").value = cat.l1 || "";
-      document.getElementById("newL2").value = cat.l2 || "";
-      document.getElementById("newL3").value = cat.l3 || "";
       document.getElementById("catEditId").value = cat.id || "";
       const title = document.getElementById("catModalTitle");
       if (title) title.textContent = "카테고리 수정";
       openCategoryModal();
+      setCatModalFieldValue("newL1Pick", cat.l1 || "");
+      setCatModalFieldValue("newL2Pick", cat.l2 || "");
+      setCatModalFieldValue("newL3Pick", cat.l3 || "");
     }
 
     function renderCategoryRows() {
@@ -4226,6 +4351,10 @@
           if (v) set.add(v);
         }
       });
+      state.categories.forEach((c) => {
+        const v = String(c[key] || "").trim();
+        if (v) set.add(v);
+      });
       return [...set].sort((a, b) => a.localeCompare(b, "ko"));
     }
 
@@ -4269,15 +4398,11 @@
       const trendMonths = getReportTrendMonths(month);
       const trendLabels = trendMonths.map(formatTrendMonthShort);
 
-      const l2Ranked = rankedCategoryKeys(month, type, "l2");
-      const l2All = allCategoryKeys(type, "l2");
-      const l2Options = l2Ranked.length ? l2Ranked : l2All;
+      const l2Options = allCategoryKeys(type, "l2");
       const l2Sel = document.getElementById("reportL2Filter");
       const selectedL2 = fillReportSelect(l2Sel, l2Options, l2Sel?.value);
 
-      const l3Ranked = rankedCategoryKeys(month, type, "l3");
-      const l3All = allCategoryKeys(type, "l3");
-      const l3Options = l3Ranked.length ? l3Ranked : l3All;
+      const l3Options = allCategoryKeys(type, "l3");
       const l3Sel = document.getElementById("reportL3Filter");
       const selectedL3 = fillReportSelect(l3Sel, l3Options, l3Sel?.value);
 
@@ -4782,9 +4907,9 @@
           alert("로그인한 뒤 자동으로 연결됩니다. 세션이 끊겼다면 다시 로그인해 주세요.");
           return;
         }
-        const l1 = document.getElementById("newL1").value.trim();
-        const l2 = document.getElementById("newL2").value.trim();
-        const l3 = document.getElementById("newL3").value.trim();
+        const l1 = getCatModalFieldValue("newL1Pick");
+        const l2 = getCatModalFieldValue("newL2Pick");
+        const l3 = getCatModalFieldValue("newL3Pick");
         const editId = document.getElementById("catEditId").value.trim();
         if (!l1 || !l2 || !l3) return;
         const exists = state.categories.some(
