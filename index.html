@@ -1060,6 +1060,57 @@
       height: 260px;
       min-height: 220px;
     }
+    .report-detail-panel {
+      width: min(520px, 96vw);
+      padding: 16px 18px 18px;
+    }
+    .report-detail-panel h2 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+    .report-detail-summary {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 10px 0 12px;
+      padding: 8px 10px;
+      background: rgba(250, 245, 255, 0.85);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(168, 85, 247, 0.12);
+    }
+    .report-detail-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-height: 55vh;
+      overflow-y: auto;
+    }
+    .report-detail-row {
+      display: grid;
+      grid-template-columns: 88px 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(124, 58, 237, 0.08);
+      font-size: 13px;
+    }
+    .report-detail-row:last-child { border-bottom: none; }
+    .report-detail-row .date { color: var(--muted); font-weight: 600; }
+    .report-detail-row .memo {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .report-detail-row .memo.empty {
+      color: var(--muted);
+      font-style: italic;
+    }
+    .report-detail-row .amount { font-weight: 700; white-space: nowrap; }
+    .report-detail-row .amount.income { color: var(--success); }
+    .report-detail-row .amount.expense { color: var(--danger); }
+    .report-detail-close {
+      min-width: 72px;
+      padding: 8px 14px;
+    }
     .report-chart-wrap canvas {
       max-height: none;
     }
@@ -1915,6 +1966,11 @@
     body.mobile-ui .report-chart-wrap {
       height: 240px;
     }
+    body.mobile-ui .report-detail-row {
+      grid-template-columns: 76px 1fr auto;
+      gap: 6px;
+      font-size: 12px;
+    }
     body.mobile-ui .report-legend-item {
       grid-template-columns: 10px 1fr auto;
       grid-template-rows: auto auto;
@@ -2157,7 +2213,7 @@
           </div>
         </div>
 
-        <div class="col-12 card report-card">
+        <div class="col-12 card report-card" id="reportCardL1">
           <h3>대분류 비중</h3>
           <p class="settings-hint" style="margin-top:2px;">선택한 월 총액 대비 대분류별 금액·비율 (계좌 이전 제외)</p>
           <div id="reportL1ChartWrap" class="report-chart-wrap report-chart-wrap--l1">
@@ -2165,7 +2221,7 @@
           </div>
         </div>
 
-        <div class="col-12 card report-card">
+        <div class="col-12 card report-card report-expense-only" id="reportCardL2">
           <div class="report-card-head">
             <h3>중분류 추이</h3>
             <select id="reportL2Filter" class="report-filter-select" aria-label="중분류 선택"></select>
@@ -2176,7 +2232,7 @@
           </div>
         </div>
 
-        <div class="col-12 card report-card">
+        <div class="col-12 card report-card report-expense-only" id="reportCardL3">
           <div class="report-card-head">
             <h3>소분류 추이</h3>
             <select id="reportL3Filter" class="report-filter-select" aria-label="소분류 선택"></select>
@@ -2187,7 +2243,7 @@
           </div>
         </div>
 
-        <div class="col-12 card report-card">
+        <div class="col-12 card report-card report-expense-only" id="reportCardAsset">
           <h3>자산 종류별 합계</h3>
           <p class="settings-hint" style="margin-top:2px;">선택한 월·유형 기준 (계좌 이전 제외)</p>
           <div class="report-chart-wrap">
@@ -2240,6 +2296,18 @@
       <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></line>
     </svg>
   </button>
+  </div>
+
+  <div id="reportDetailModal" class="tx-modal-overlay hidden" aria-hidden="true">
+    <div class="tx-modal-panel report-detail-panel" role="dialog" aria-modal="true" aria-labelledby="reportDetailTitle">
+      <div class="tx-modal-head">
+        <h2 id="reportDetailTitle">상세 내역</h2>
+        <button type="button" class="report-detail-close" id="reportDetailCloseBtn">닫기</button>
+      </div>
+      <div id="reportDetailSummary" class="report-detail-summary"></div>
+      <ul id="reportDetailList" class="report-detail-list"></ul>
+      <p id="reportDetailEmpty" class="settings-hint hidden">해당 내역이 없습니다.</p>
+    </div>
   </div>
 
   <div id="assetModal" class="tx-modal-overlay hidden" aria-hidden="true">
@@ -4345,10 +4413,82 @@
       };
     }
 
+    function chartClickHoverHandlers(onClick) {
+      return {
+        onClick(_event, elements) {
+          if (!elements?.length) return;
+          onClick(elements[0].index);
+        },
+        onHover(event, elements) {
+          const canvas = event.chart?.canvas;
+          if (canvas) canvas.style.cursor = elements?.length ? "pointer" : "default";
+        }
+      };
+    }
+
+    function getReportDetailRows(month, type, filters = {}) {
+      return state.transactions
+        .filter((t) => {
+          if (monthKeyFromDate(t.date) !== month) return false;
+          if (t.type !== type) return false;
+          if (isAccountTransferTransaction(t)) return false;
+          if (filters.l1 && String(t.l1 || "").trim() !== filters.l1) return false;
+          if (filters.l2 && String(t.l2 || "").trim() !== filters.l2) return false;
+          if (filters.l3 && String(t.l3 || "").trim() !== filters.l3) return false;
+          return true;
+        })
+        .sort((a, b) => normalizeTransactionDate(b.date).localeCompare(normalizeTransactionDate(a.date)));
+    }
+
+    function openReportDetailModal(title, summary, rows) {
+      const modal = document.getElementById("reportDetailModal");
+      if (!modal) return;
+      const titleEl = document.getElementById("reportDetailTitle");
+      const summaryEl = document.getElementById("reportDetailSummary");
+      const listEl = document.getElementById("reportDetailList");
+      const emptyEl = document.getElementById("reportDetailEmpty");
+      if (titleEl) titleEl.textContent = title;
+      const total = rows.reduce((s, t) => s + Number(t.amount || 0), 0);
+      if (summaryEl) {
+        summaryEl.textContent = rows.length
+          ? `${summary} · ${rows.length}건 · 합계 ${formatCurrency(total)}`
+          : summary;
+      }
+      if (listEl) {
+        listEl.innerHTML = "";
+        rows.forEach((t) => {
+          const li = document.createElement("li");
+          li.className = "report-detail-row";
+          const memo = (t.memo || "").trim();
+          li.innerHTML = `
+            <span class="date">${normalizeTransactionDate(t.date)}</span>
+            <span class="memo ${memo ? "" : "empty"}">${memo || "(메모 없음)"}</span>
+            <span class="amount ${t.type}">${formatCurrency(t.amount)}</span>`;
+          listEl.appendChild(li);
+        });
+        listEl.classList.toggle("hidden", rows.length === 0);
+      }
+      if (emptyEl) emptyEl.classList.toggle("hidden", rows.length > 0);
+      modal.classList.remove("hidden");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeReportDetailModal() {
+      const modal = document.getElementById("reportDetailModal");
+      if (!modal) return;
+      modal.classList.add("hidden");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
     function buildReports() {
       const month = document.getElementById("reportMonth").value || ymNow;
       const type = document.getElementById("reportType").value;
       const typeLabel = type === "income" ? "수입" : "지출";
+      const isIncome = type === "income";
+      document.querySelectorAll(".report-expense-only").forEach((el) => {
+        el.classList.toggle("hidden", isIncome);
+      });
+
       const rows = getMonthReportRows(month, type);
       const monthTotal = rows.reduce((s, t) => s + Number(t.amount || 0), 0);
 
@@ -4358,13 +4498,17 @@
       const trendMonths = getReportTrendMonths(month);
       const trendLabels = trendMonths.map(formatTrendMonthShort);
 
-      const l2Options = allCategoryKeys(type, "l2");
-      const l2Sel = document.getElementById("reportL2Filter");
-      const selectedL2 = fillReportSelect(l2Sel, l2Options, l2Sel?.value);
+      let selectedL2 = "";
+      let selectedL3 = "";
+      if (!isIncome) {
+        const l2Options = allCategoryKeys(type, "l2");
+        const l2Sel = document.getElementById("reportL2Filter");
+        selectedL2 = fillReportSelect(l2Sel, l2Options, l2Sel?.value);
 
-      const l3Options = allCategoryKeys(type, "l3");
-      const l3Sel = document.getElementById("reportL3Filter");
-      const selectedL3 = fillReportSelect(l3Sel, l3Options, l3Sel?.value);
+        const l3Options = allCategoryKeys(type, "l3");
+        const l3Sel = document.getElementById("reportL3Filter");
+        selectedL3 = fillReportSelect(l3Sel, l3Options, l3Sel?.value);
+      }
 
       if (charts.l1) charts.l1.destroy();
       if (charts.l2Trend) charts.l2Trend.destroy();
@@ -4385,45 +4529,58 @@
               maxBarThickness: 48
             }]
           },
-          options: chartBaseOptions({
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  callback: (v) => {
-                    const n = Number(v);
-                    if (n >= 10000) return `${Math.round(n / 10000)}만`;
-                    if (n >= 1000) return `${Math.round(n / 1000)}천`;
-                    return n;
-                  }
+          options: {
+            ...chartBaseOptions({
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    callback: (v) => {
+                      const n = Number(v);
+                      if (n >= 10000) return `${Math.round(n / 10000)}만`;
+                      if (n >= 1000) return `${Math.round(n / 1000)}천`;
+                      return n;
+                    }
+                  },
+                  grid: { color: "rgba(124, 58, 237, 0.08)" }
                 },
-                grid: { color: "rgba(124, 58, 237, 0.08)" }
-              },
-              x: {
-                grid: { display: false },
-                ticks: {
-                  maxRotation: 45,
-                  minRotation: 0,
-                  autoSkip: false,
-                  font: { size: 11 }
+                x: {
+                  grid: { display: false },
+                  ticks: {
+                    maxRotation: 45,
+                    minRotation: 0,
+                    autoSkip: false,
+                    font: { size: 11 }
+                  }
                 }
-              }
-            },
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  label(ctx) {
-                    const amt = Number(ctx.raw || 0);
-                    const pct = monthTotal ? (amt / monthTotal * 100).toFixed(1) : 0;
-                    return `${formatCurrency(amt)} (${pct}%)`;
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label(ctx) {
+                      const amt = Number(ctx.raw || 0);
+                      const pct = monthTotal ? (amt / monthTotal * 100).toFixed(1) : 0;
+                      return `${formatCurrency(amt)} (${pct}%)`;
+                    }
                   }
                 }
               }
-            }
-          })
+            }),
+            ...chartClickHoverHandlers((idx) => {
+              const l1Name = l1Pairs[idx]?.[0];
+              if (!l1Name) return;
+              openReportDetailModal(
+                `${l1Name} 상세`,
+                `${formatReportMonthLabel(month)} · ${typeLabel}`,
+                getReportDetailRows(month, type, { l1: l1Name })
+              );
+            })
+          }
         });
       }
+
+      if (isIncome) return;
 
       const l2Canvas = document.getElementById("chartL2Trend");
       if (selectedL2) {
@@ -4443,25 +4600,36 @@
               pointHoverRadius: 6
             }]
           },
-          options: chartBaseOptions({
-            scales: {
-              y: {
-                beginAtZero: true,
-                grid: { color: "rgba(124, 58, 237, 0.08)" },
-                ticks: {
-                  callback: (v) => {
-                    const n = Number(v);
-                    if (n >= 10000) return `${Math.round(n / 10000)}만`;
-                    return n;
+          options: {
+            ...chartBaseOptions({
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: "rgba(124, 58, 237, 0.08)" },
+                  ticks: {
+                    callback: (v) => {
+                      const n = Number(v);
+                      if (n >= 10000) return `${Math.round(n / 10000)}만`;
+                      return n;
+                    }
                   }
-                }
+                },
+                x: { grid: { display: false } }
               },
-              x: { grid: { display: false } }
-            },
-            plugins: {
-              legend: { display: true, position: "bottom" }
-            }
-          })
+              plugins: {
+                legend: { display: true, position: "bottom" }
+              }
+            }),
+            ...chartClickHoverHandlers((idx) => {
+              const trendMonth = trendMonths[idx];
+              if (!trendMonth || !selectedL2) return;
+              openReportDetailModal(
+                `${selectedL2} 상세`,
+                `${formatReportMonthLabel(trendMonth)} · ${typeLabel}`,
+                getReportDetailRows(trendMonth, type, { l2: selectedL2 })
+              );
+            })
+          }
         });
       }
 
@@ -4483,25 +4651,36 @@
               pointHoverRadius: 6
             }]
           },
-          options: chartBaseOptions({
-            scales: {
-              y: {
-                beginAtZero: true,
-                grid: { color: "rgba(124, 58, 237, 0.08)" },
-                ticks: {
-                  callback: (v) => {
-                    const n = Number(v);
-                    if (n >= 10000) return `${Math.round(n / 10000)}만`;
-                    return n;
+          options: {
+            ...chartBaseOptions({
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: "rgba(124, 58, 237, 0.08)" },
+                  ticks: {
+                    callback: (v) => {
+                      const n = Number(v);
+                      if (n >= 10000) return `${Math.round(n / 10000)}만`;
+                      return n;
+                    }
                   }
-                }
+                },
+                x: { grid: { display: false } }
               },
-              x: { grid: { display: false } }
-            },
-            plugins: {
-              legend: { display: true, position: "bottom" }
-            }
-          })
+              plugins: {
+                legend: { display: true, position: "bottom" }
+              }
+            }),
+            ...chartClickHoverHandlers((idx) => {
+              const trendMonth = trendMonths[idx];
+              if (!trendMonth || !selectedL3) return;
+              openReportDetailModal(
+                `${selectedL3} 상세`,
+                `${formatReportMonthLabel(trendMonth)} · ${typeLabel}`,
+                getReportDetailRows(trendMonth, type, { l3: selectedL3 })
+              );
+            })
+          }
         });
       }
 
@@ -4592,6 +4771,7 @@
     }
 
     function getTopModal() {
+      if (!document.getElementById("reportDetailModal")?.classList.contains("hidden")) return "reportDetail";
       if (!document.getElementById("txModal")?.classList.contains("hidden")) return "tx";
       if (!document.getElementById("catModal")?.classList.contains("hidden")) return "cat";
       if (!document.getElementById("assetModal")?.classList.contains("hidden")) return "asset";
@@ -4651,6 +4831,7 @@
     }
 
     function hideAllModalsUi() {
+      closeReportDetailModal();
       const tx = document.getElementById("txModal");
       if (tx) {
         tx.classList.add("hidden");
@@ -4722,6 +4903,10 @@
     function closeModalViaHistory(modalKind) {
       if (historyRestoring) {
         hideAllModalsUi();
+        return;
+      }
+      if (modalKind === "reportDetail") {
+        closeReportDetailModal();
         return;
       }
       if (history.state?.app === APP_HISTORY_MARK && history.state?.modal === modalKind) {
@@ -4810,6 +4995,10 @@
       if (openCatBtn) openCatBtn.onclick = openCategoryModalForCreate;
       initCategoryModalPicklists();
       document.getElementById("catModalCancelBtn").onclick = closeCategoryModal;
+      document.getElementById("reportDetailCloseBtn").onclick = closeReportDetailModal;
+      document.getElementById("reportDetailModal").onclick = (e) => {
+        if (e.target.id === "reportDetailModal") closeReportDetailModal();
+      };
       document.getElementById("catModal").onclick = (e) => {
         if (e.target.id === "catModal") closeCategoryModal();
       };
