@@ -998,36 +998,20 @@
       flex-wrap: nowrap;
       align-items: flex-end;
       gap: 10px 12px;
-      margin-bottom: 14px;
+      margin-bottom: 0;
     }
-    .report-filters--all {
-      display: grid;
-      grid-template-columns: 118px 84px minmax(0, 1fr) minmax(0, 1fr);
-      grid-template-areas: "month type l2 l3";
-      gap: 8px 10px;
-      align-items: end;
-      margin-bottom: 14px;
-    }
-    .report-field-month { grid-area: month; }
-    .report-field-type { grid-area: type; }
-    .report-field-l2 { grid-area: l2; }
-    .report-field-l3 { grid-area: l3; }
-    .report-filters .field,
-    .report-filters--all .field {
+    .report-head-card .report-filters .field {
       flex: 0 1 auto;
       min-width: 0;
       margin: 0;
     }
-    .report-filters .field label,
-    .report-filters--all .field label {
+    .report-head-card .report-filters .field label {
       font-size: 11px;
       margin-bottom: 3px;
       white-space: nowrap;
     }
-    .report-filters input,
-    .report-filters select,
-    .report-filters--all input,
-    .report-filters--all select {
+    .report-head-card .report-filters input,
+    .report-head-card .report-filters select {
       width: 100%;
       padding: 7px 8px;
       font-size: 13px;
@@ -1035,36 +1019,14 @@
       height: 36px;
       box-sizing: border-box;
     }
-    .report-filters--all .report-filter-select {
-      min-width: 0;
-      max-width: none;
-      flex: none;
-      min-height: 36px;
-      padding: 7px 8px;
-      font-size: 13px;
-    }
     #reportMonth {
-      max-width: none;
-      min-width: 0;
+      max-width: 132px;
+      min-width: 118px;
     }
     #reportType {
-      max-width: none;
-      min-width: 0;
+      max-width: 96px;
+      min-width: 84px;
     }
-    .report-kpi {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 8px 16px;
-      padding: 12px 14px;
-      border-radius: var(--radius-md);
-      background: linear-gradient(135deg, rgba(250, 245, 255, 0.95), rgba(243, 232, 255, 0.6));
-      border: 1px solid rgba(168, 85, 247, 0.14);
-    }
-    .report-kpi-label { font-size: 13px; color: var(--muted); font-weight: 600; }
-    .report-kpi-value { font-size: 1.35rem; font-weight: 800; }
-    .report-kpi-value.income { color: var(--success); }
-    .report-kpi-value.expense { color: var(--danger); }
     .report-card h3 { margin: 0 0 4px; font-size: 1.05rem; }
     .report-card-head {
       display: flex;
@@ -1076,11 +1038,14 @@
     }
     .report-card-head h3 { margin: 0; flex: 1 1 140px; }
     .report-filter-select {
-      min-width: 140px;
-      flex: 1 1 160px;
-      max-width: 100%;
-      padding: 10px 12px;
-      font-size: 14px;
+      min-width: 120px;
+      flex: 0 1 180px;
+      max-width: min(220px, 48vw);
+      padding: 7px 10px;
+      font-size: 13px;
+      min-height: 36px;
+      height: 36px;
+      box-sizing: border-box;
       border-radius: var(--radius-md);
       border: 1px solid rgba(168, 85, 247, 0.22);
       background: #fff;
@@ -1916,27 +1881,36 @@
     body.mobile-ui canvas {
       max-height: 260px;
     }
-    body.mobile-ui .report-filters--all {
+    body.mobile-ui .report-head-card .report-filters {
+      display: grid;
       grid-template-columns: 1.15fr 0.85fr;
-      grid-template-areas:
-        "month type"
-        "l2 l3";
       gap: 6px 8px;
     }
-    body.mobile-ui .report-filters--all input,
-    body.mobile-ui .report-filters--all select {
+    body.mobile-ui .report-head-card .report-filters input,
+    body.mobile-ui .report-head-card .report-filters select {
       min-height: 34px;
       height: 34px;
       padding: 5px 6px;
       font-size: 12px;
     }
-    body.mobile-ui .report-filters--all .report-filter-select {
-      min-height: 34px;
-      padding: 5px 6px;
-      font-size: 12px;
+    body.mobile-ui #reportMonth,
+    body.mobile-ui #reportType {
+      max-width: none;
+      min-width: 0;
     }
-    body.mobile-ui .report-kpi-value {
-      font-size: 1.2rem;
+    body.mobile-ui .report-card-head {
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 8px;
+    }
+    body.mobile-ui .report-filter-select {
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: none;
+      min-height: 34px;
+      height: 34px;
+      padding: 5px 8px;
+      font-size: 12px;
     }
     body.mobile-ui .report-chart-wrap {
       height: 240px;
@@ -2168,30 +2142,18 @@
       <div class="grid">
         <div class="col-12 card report-head-card">
           <h2>월간 리포트</h2>
-          <div class="report-filters report-filters--all">
-            <div class="field report-field-month">
+          <div class="report-filters">
+            <div class="field">
               <label for="reportMonth">기준 월</label>
               <input id="reportMonth" type="month">
             </div>
-            <div class="field report-field-type">
+            <div class="field">
               <label for="reportType">분석 대상</label>
               <select id="reportType">
                 <option value="expense">지출</option>
                 <option value="income">수입</option>
               </select>
             </div>
-            <div class="field report-field-l2">
-              <label for="reportL2Filter">중분류</label>
-              <select id="reportL2Filter" class="report-filter-select" aria-label="중분류 선택"></select>
-            </div>
-            <div class="field report-field-l3">
-              <label for="reportL3Filter">소분류</label>
-              <select id="reportL3Filter" class="report-filter-select" aria-label="소분류 선택"></select>
-            </div>
-          </div>
-          <div class="report-kpi">
-            <span class="report-kpi-label" id="reportKpiLabel">이번 달 총 지출</span>
-            <span class="report-kpi-value expense" id="reportMonthTotal">0원</span>
           </div>
         </div>
 
@@ -2204,16 +2166,22 @@
         </div>
 
         <div class="col-12 card report-card">
-          <h3>중분류 추이 (최근 6개월)</h3>
-          <p class="settings-hint" style="margin-top:2px;">선택한 중분류의 월별 변동 (계좌 이전 제외)</p>
+          <div class="report-card-head">
+            <h3>중분류 추이</h3>
+            <select id="reportL2Filter" class="report-filter-select" aria-label="중분류 선택"></select>
+          </div>
+          <p class="settings-hint" style="margin-top:0;">선택한 중분류의 월별 변동 (계좌 이전 제외)</p>
           <div class="report-chart-wrap">
             <canvas id="chartL2Trend"></canvas>
           </div>
         </div>
 
         <div class="col-12 card report-card">
-          <h3>소분류 추이 (최근 6개월)</h3>
-          <p class="settings-hint" style="margin-top:2px;">선택한 소분류의 월별 변동 (계좌 이전 제외)</p>
+          <div class="report-card-head">
+            <h3>소분류 추이</h3>
+            <select id="reportL3Filter" class="report-filter-select" aria-label="소분류 선택"></select>
+          </div>
+          <p class="settings-hint" style="margin-top:0;">선택한 소분류의 월별 변동 (계좌 이전 제외)</p>
           <div class="report-chart-wrap">
             <canvas id="chartL3Trend"></canvas>
           </div>
@@ -4383,14 +4351,6 @@
       const typeLabel = type === "income" ? "수입" : "지출";
       const rows = getMonthReportRows(month, type);
       const monthTotal = rows.reduce((s, t) => s + Number(t.amount || 0), 0);
-
-      const kpiLabel = document.getElementById("reportKpiLabel");
-      const kpiVal = document.getElementById("reportMonthTotal");
-      if (kpiLabel) kpiLabel.textContent = `${formatReportMonthLabel(month)} 총 ${typeLabel}`;
-      if (kpiVal) {
-        kpiVal.textContent = formatCurrency(monthTotal);
-        kpiVal.className = `report-kpi-value ${type}`;
-      }
 
       const byL1 = aggregateBy(rows, "l1");
       const l1Pairs = Object.entries(byL1).sort((a, b) => b[1] - a[1]);
