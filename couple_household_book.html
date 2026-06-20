@@ -3726,20 +3726,42 @@
 
     function refreshCategoryModalPicklists() {
       const tree = buildCategoryHierarchy();
-      const currentL1 = getCatModalFieldValue("newL1Pick");
+      const getPickState = (pickId) => {
+        const pick = document.getElementById(pickId);
+        const input = document.getElementById(pickId.replace("Pick", ""));
+        return {
+          pickValue: pick?.value || "",
+          inputValue: input?.value || ""
+        };
+      };
+      const restorePickState = (pickId, state) => {
+        const pick = document.getElementById(pickId);
+        const input = document.getElementById(pickId.replace("Pick", ""));
+        if (!pick || !input) return;
+        if (state.pickValue === CAT_MODAL_CUSTOM) {
+          pick.value = CAT_MODAL_CUSTOM;
+          input.classList.remove("hidden");
+          input.value = state.inputValue || "";
+          return;
+        }
+        const valueToRestore = state.pickValue || state.inputValue || "";
+        setCatModalFieldValue(pickId, valueToRestore);
+      };
+
+      const l1State = getPickState("newL1Pick");
       fillCatModalSelect("newL1Pick", [...tree.keys()].sort((a, b) => a.localeCompare(b, "ko")));
-      setCatModalFieldValue("newL1Pick", currentL1);
+      restorePickState("newL1Pick", l1State);
       const selectedL1 = getCatModalFieldValue("newL1Pick");
 
-      const currentL2 = getCatModalFieldValue("newL2Pick");
+      const l2State = getPickState("newL2Pick");
       const l2Values = (selectedL1 && tree.has(selectedL1))
         ? [...tree.get(selectedL1).keys()].sort((a, b) => a.localeCompare(b, "ko"))
         : uniqueCategoryFieldValues("l2");
       fillCatModalSelect("newL2Pick", l2Values);
-      setCatModalFieldValue("newL2Pick", currentL2);
+      restorePickState("newL2Pick", l2State);
       const selectedL2 = getCatModalFieldValue("newL2Pick");
 
-      const currentL3 = getCatModalFieldValue("newL3Pick");
+      const l3State = getPickState("newL3Pick");
       const l3Values = (
         selectedL1
         && selectedL2
@@ -3749,7 +3771,7 @@
         ? [...tree.get(selectedL1).get(selectedL2)].sort((a, b) => a.localeCompare(b, "ko"))
         : uniqueCategoryFieldValues("l3");
       fillCatModalSelect("newL3Pick", l3Values);
-      setCatModalFieldValue("newL3Pick", currentL3);
+      restorePickState("newL3Pick", l3State);
     }
 
     function initCategoryModalPicklists() {
