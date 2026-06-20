@@ -2211,6 +2211,7 @@
               </select>
             </div>
           </div>
+          <p id="reportTapHint" class="settings-hint" style="margin-top:8px;">그래프 항목 1회 선택 시 총금액, 2회 선택 시 상세 내역이 열립니다.</p>
         </div>
 
         <div class="col-12 card report-card" id="reportCardL1">
@@ -2461,6 +2462,8 @@
     let householdCode = "";
     let refreshing = false;
     let charts = { l1: null, l2Trend: null, l3Trend: null, asset: null };
+    let reportTapSelectionKey = "";
+    const REPORT_TAP_GUIDE_TEXT = "그래프 항목 1회 선택 시 총금액, 2회 선택 시 상세 내역이 열립니다.";
     let lastClientUrl = "";
     let lastClientKey = "";
     let currentUserEmail = "";
@@ -3722,16 +3725,31 @@
     }
 
     function refreshCategoryModalPicklists() {
-      const fields = [
-        ["newL1Pick", "l1"],
-        ["newL2Pick", "l2"],
-        ["newL3Pick", "l3"]
-      ];
-      fields.forEach(([pickId, field]) => {
-        const current = getCatModalFieldValue(pickId);
-        fillCatModalSelect(pickId, uniqueCategoryFieldValues(field));
-        setCatModalFieldValue(pickId, current);
-      });
+      const tree = buildCategoryHierarchy();
+      const currentL1 = getCatModalFieldValue("newL1Pick");
+      fillCatModalSelect("newL1Pick", [...tree.keys()].sort((a, b) => a.localeCompare(b, "ko")));
+      setCatModalFieldValue("newL1Pick", currentL1);
+      const selectedL1 = getCatModalFieldValue("newL1Pick");
+
+      const currentL2 = getCatModalFieldValue("newL2Pick");
+      const l2Values = (selectedL1 && tree.has(selectedL1))
+        ? [...tree.get(selectedL1).keys()].sort((a, b) => a.localeCompare(b, "ko"))
+        : uniqueCategoryFieldValues("l2");
+      fillCatModalSelect("newL2Pick", l2Values);
+      setCatModalFieldValue("newL2Pick", currentL2);
+      const selectedL2 = getCatModalFieldValue("newL2Pick");
+
+      const currentL3 = getCatModalFieldValue("newL3Pick");
+      const l3Values = (
+        selectedL1
+        && selectedL2
+        && tree.has(selectedL1)
+        && tree.get(selectedL1).has(selectedL2)
+      )
+        ? [...tree.get(selectedL1).get(selectedL2)].sort((a, b) => a.localeCompare(b, "ko"))
+        : uniqueCategoryFieldValues("l3");
+      fillCatModalSelect("newL3Pick", l3Values);
+      setCatModalFieldValue("newL3Pick", currentL3);
     }
 
     function initCategoryModalPicklists() {
@@ -3740,7 +3758,10 @@
       ["newL1Pick", "newL2Pick", "newL3Pick"].forEach((id) => {
         const pick = document.getElementById(id);
         if (!pick) return;
-        pick.addEventListener("change", () => syncCatModalPickUI(id));
+        pick.addEventListener("change", () => {
+          syncCatModalPickUI(id);
+          if (id === "newL1Pick" || id === "newL2Pick") refreshCategoryModalPicklists();
+        });
       });
     }
 
@@ -4426,6 +4447,29 @@
       };
     }
 
+    function setReportTapHint(message = REPORT_TAP_GUIDE_TEXT) {
+      const hint = document.getElementById("reportTapHint");
+      if (!hint) return;
+      hint.textContent = message;
+    }
+
+    function resetReportTapState() {
+      reportTapSelectionKey = "";
+      setReportTapHint();
+    }
+
+    function handleReportChartTap({ chartKey, itemKey, month, type, label, total, onSecondTap }) {
+      const key = `${chartKey}|${month}|${type}|${itemKey}`;
+      if (reportTapSelectionKey === key) {
+        reportTapSelectionKey = "";
+        setReportTapHint();
+        onSecondTap();
+        return;
+      }
+      reportTapSelectionKey = key;
+      setReportTapHint(`${label} 총액 ${formatCurrency(total || 0)} · 한 번 더 선택하면 상세 내역이 열립니다.`);
+    }
+
     function getReportDetailRows(month, type, filters = {}) {
       return state.transactions
         .filter((t) => {
@@ -4435,6 +4479,7 @@
           if (filters.l1 && String(t.l1 || "").trim() !== filters.l1) return false;
           if (filters.l2 && String(t.l2 || "").trim() !== filters.l2) return false;
           if (filters.l3 && String(t.l3 || "").trim() !== filters.l3) return false;
+          if (filters.assetType && String(t.assetType || "").trim() !== filters.assetType) return false;
           return true;
         })
         .sort((a, b) => normalizeTransactionDate(b.date).localeCompare(normalizeTransactionDate(a.date)));
@@ -4484,6 +4529,7 @@
       const month = document.getElementById("reportMonth").value || ymNow;
       const type = document.getElementById("reportType").value;
       const typeLabel = type === "income" ? "수입" : "지출";
+      resetReportTapState();
       const isIncome = type === "income";
       document.querySelectorAll(".report-expense-only").forEach((el) => {
         el.classList.toggle("hidden", isIncome);
@@ -4569,12 +4615,23 @@
             }),
             ...chartClickHoverHandlers((idx) => {
               const l1Name = l1Pairs[idx]?.[0];
+              const l1Amt = Number(l1Pairs[idx]?.[1] || 0);
               if (!l1Name) return;
-              openReportDetailModal(
-                `${l1Name} 상세`,
-                `${formatReportMonthLabel(month)} · ${typeLabel}`,
-                getReportDetailRows(month, type, { l1: l1Name })
-              );
+              handleReportChartTap({
+                chartKey: "l1",
+                itemKey: l1Name,
+                month,
+                type,
+                label: `${formatReportMonthLabel(month)} ${l1Name}`,
+                total: l1Amt,
+                onSecondTap: () => {
+                  openReportDetailModal(
+                    `${l1Name} 상세`,
+                    `${formatReportMonthLabel(month)} · ${typeLabel}`,
+                    getReportDetailRows(month, type, { l1: l1Name })
+                  );
+                }
+              });
             })
           }
         });
@@ -4622,12 +4679,23 @@
             }),
             ...chartClickHoverHandlers((idx) => {
               const trendMonth = trendMonths[idx];
+              const l2Amt = Number(l2Data[idx] || 0);
               if (!trendMonth || !selectedL2) return;
-              openReportDetailModal(
-                `${selectedL2} 상세`,
-                `${formatReportMonthLabel(trendMonth)} · ${typeLabel}`,
-                getReportDetailRows(trendMonth, type, { l2: selectedL2 })
-              );
+              handleReportChartTap({
+                chartKey: "l2Trend",
+                itemKey: `${selectedL2}|${trendMonth}`,
+                month: trendMonth,
+                type,
+                label: `${formatReportMonthLabel(trendMonth)} ${selectedL2}`,
+                total: l2Amt,
+                onSecondTap: () => {
+                  openReportDetailModal(
+                    `${selectedL2} 상세`,
+                    `${formatReportMonthLabel(trendMonth)} · ${typeLabel}`,
+                    getReportDetailRows(trendMonth, type, { l2: selectedL2 })
+                  );
+                }
+              });
             })
           }
         });
@@ -4673,12 +4741,23 @@
             }),
             ...chartClickHoverHandlers((idx) => {
               const trendMonth = trendMonths[idx];
+              const l3Amt = Number(l3Data[idx] || 0);
               if (!trendMonth || !selectedL3) return;
-              openReportDetailModal(
-                `${selectedL3} 상세`,
-                `${formatReportMonthLabel(trendMonth)} · ${typeLabel}`,
-                getReportDetailRows(trendMonth, type, { l3: selectedL3 })
-              );
+              handleReportChartTap({
+                chartKey: "l3Trend",
+                itemKey: `${selectedL3}|${trendMonth}`,
+                month: trendMonth,
+                type,
+                label: `${formatReportMonthLabel(trendMonth)} ${selectedL3}`,
+                total: l3Amt,
+                onSecondTap: () => {
+                  openReportDetailModal(
+                    `${selectedL3} 상세`,
+                    `${formatReportMonthLabel(trendMonth)} · ${typeLabel}`,
+                    getReportDetailRows(trendMonth, type, { l3: selectedL3 })
+                  );
+                }
+              });
             })
           }
         });
@@ -4696,15 +4775,37 @@
             borderRadius: 6
           }]
         },
-        options: chartBaseOptions({
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: { color: "rgba(124, 58, 237, 0.08)" }
-            },
-            x: { grid: { display: false } }
-          }
-        })
+        options: {
+          ...chartBaseOptions({
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: "rgba(124, 58, 237, 0.08)" }
+              },
+              x: { grid: { display: false } }
+            }
+          }),
+          ...chartClickHoverHandlers((idx) => {
+            const assetName = assetPairs[idx]?.[0] || "미지정";
+            const assetAmt = Number(assetPairs[idx]?.[1] || 0);
+            if (!assetName) return;
+            handleReportChartTap({
+              chartKey: "asset",
+              itemKey: assetName,
+              month,
+              type,
+              label: `${formatReportMonthLabel(month)} ${assetName}`,
+              total: assetAmt,
+              onSecondTap: () => {
+                openReportDetailModal(
+                  `${assetName} 상세`,
+                  `${formatReportMonthLabel(month)} · ${typeLabel}`,
+                  getReportDetailRows(month, type, { assetType: assetName })
+                );
+              }
+            });
+          })
+        }
       });
     }
 
