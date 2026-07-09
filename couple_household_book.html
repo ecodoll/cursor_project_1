@@ -1111,6 +1111,36 @@
       min-width: 72px;
       padding: 8px 14px;
     }
+    .search-card h2 { margin-bottom: 12px; }
+    .search-form {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 10px 12px;
+      margin-bottom: 12px;
+    }
+    .search-form .field {
+      flex: 1 1 220px;
+      min-width: 0;
+      margin: 0;
+    }
+    .search-form .btn-primary {
+      min-width: 88px;
+      min-height: 42px;
+      padding: 10px 18px;
+    }
+    .search-summary {
+      margin: 0 0 10px;
+      padding: 8px 10px;
+      background: rgba(250, 245, 255, 0.85);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(168, 85, 247, 0.12);
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .search-results-wrap {
+      margin-top: 4px;
+    }
     .report-chart-wrap canvas {
       max-height: none;
     }
@@ -1971,6 +2001,16 @@
       gap: 6px;
       font-size: 12px;
     }
+    body.mobile-ui .search-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+    body.mobile-ui .search-form .btn-primary {
+      min-height: 44px;
+      padding: 10px 14px;
+    }
     body.mobile-ui .report-legend-item {
       grid-template-columns: 10px 1fr auto;
       grid-template-rows: auto auto;
@@ -2050,6 +2090,12 @@
         <button id="nextMonthBtn" type="button" class="tx-month-arrow" aria-label="다음 달">›</button>
       </div>
       <div class="main-app-toolbar-icons" role="tablist" aria-label="화면 전환">
+        <button type="button" class="tab-icon-btn" data-tab="search" role="tab" aria-label="메모 검색" title="메모 검색">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
         <button type="button" class="tab-icon-btn" data-tab="dashboard" role="tab" aria-label="거래 내역" title="거래 내역">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="8" y1="6" x2="21" y2="6"></line>
@@ -2088,6 +2134,27 @@
         </svg>
       </button>
     </div>
+
+    <section id="tab-search" class="tab-panel hidden">
+      <div class="grid">
+        <div class="col-12 card search-card">
+          <h2>메모 검색</h2>
+          <div class="search-form">
+            <div class="field">
+              <label for="txSearchInput">검색어</label>
+              <input id="txSearchInput" type="search" placeholder="메모 내용 입력" autocomplete="off" maxlength="100">
+            </div>
+            <button type="button" id="txSearchBtn" class="btn-primary">검색</button>
+          </div>
+          <div id="txSearchSummary" class="search-summary hidden" aria-live="polite"></div>
+          <div class="search-results-wrap">
+            <ul id="txSearchResults" class="report-detail-list hidden"></ul>
+            <p id="txSearchEmpty" class="settings-hint hidden">검색 결과가 없습니다.</p>
+            <p id="txSearchInitial" class="settings-hint">검색어를 입력한 뒤 검색 버튼을 눌러 주세요.</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section id="tab-dashboard" class="tab-panel">
       <div id="dashboardMonthSummary" class="dashboard-month-summary">
@@ -4173,6 +4240,59 @@
       setSelectedMonth(`${ny}-${nm}`);
     }
 
+    function searchTransactionsByMemo(query) {
+      const q = String(query || "").trim().toLowerCase();
+      if (!q) return [];
+      return state.transactions
+        .filter((t) => String(t.memo || "").toLowerCase().includes(q))
+        .sort((a, b) => normalizeTransactionDate(b.date).localeCompare(normalizeTransactionDate(a.date)));
+    }
+
+    function renderTxSearchResults() {
+      const input = document.getElementById("txSearchInput");
+      const query = input?.value || "";
+      const q = query.trim();
+      const rows = searchTransactionsByMemo(q);
+      const listEl = document.getElementById("txSearchResults");
+      const emptyEl = document.getElementById("txSearchEmpty");
+      const initialEl = document.getElementById("txSearchInitial");
+      const summaryEl = document.getElementById("txSearchSummary");
+
+      if (!q) {
+        if (listEl) {
+          listEl.innerHTML = "";
+          listEl.classList.add("hidden");
+        }
+        if (emptyEl) emptyEl.classList.add("hidden");
+        if (initialEl) initialEl.classList.remove("hidden");
+        if (summaryEl) summaryEl.classList.add("hidden");
+        return;
+      }
+
+      if (initialEl) initialEl.classList.add("hidden");
+      if (summaryEl) {
+        const incomeTotal = rows.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount || 0), 0);
+        const expenseTotal = rows.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount || 0), 0);
+        summaryEl.textContent = `"${q}" 검색 결과 ${rows.length}건 · 수입 ${formatCurrency(incomeTotal)} · 지출 ${formatCurrency(expenseTotal)}`;
+        summaryEl.classList.remove("hidden");
+      }
+      if (listEl) {
+        listEl.innerHTML = "";
+        rows.forEach((t) => {
+          const li = document.createElement("li");
+          li.className = "report-detail-row";
+          const memo = (t.memo || "").trim();
+          li.innerHTML = `
+            <span class="date">${normalizeTransactionDate(t.date)}</span>
+            <span class="memo ${memo ? "" : "empty"}">${memo || "(메모 없음)"}</span>
+            <span class="amount ${t.type}">${formatCurrency(t.amount)}</span>`;
+          listEl.appendChild(li);
+        });
+        listEl.classList.toggle("hidden", rows.length === 0);
+      }
+      if (emptyEl) emptyEl.classList.toggle("hidden", rows.length > 0);
+    }
+
     function renderTransactions() {
       const wrap = document.getElementById("txMobileRows");
       if (!wrap) return;
@@ -5042,7 +5162,7 @@
     function switchTabUi(name) {
       if (!name) return;
       document.body.setAttribute("data-active-tab", name);
-      const mainTabs = new Set(["dashboard", "reports"]);
+      const mainTabs = new Set(["search", "dashboard", "reports"]);
       document.querySelectorAll(".tab-icon-btn").forEach((b) => {
         b.classList.toggle("active", mainTabs.has(name) && b.getAttribute("data-tab") === name);
       });
@@ -5055,6 +5175,9 @@
       if (panel) panel.classList.remove("hidden");
       if (name === "reports") buildReports();
       if (name === "settings") renderJoinRequestsAdmin();
+      if (name === "search") {
+        setTimeout(() => document.getElementById("txSearchInput")?.focus(), 50);
+      }
       closeHeaderSettingsMenu();
       if (document.body.classList.contains("mobile-ui")) {
         const icon = document.querySelector(`.tab-icon-btn[data-tab="${name}"]`);
@@ -5093,6 +5216,18 @@
         document.addEventListener("click", (e) => {
           const wrap = settingsBtn.closest(".header-settings-wrap");
           if (wrap && !wrap.contains(e.target)) closeHeaderSettingsMenu();
+        });
+      }
+
+      const txSearchBtn = document.getElementById("txSearchBtn");
+      const txSearchInput = document.getElementById("txSearchInput");
+      if (txSearchBtn) txSearchBtn.onclick = renderTxSearchResults;
+      if (txSearchInput) {
+        txSearchInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            renderTxSearchResults();
+          }
         });
       }
 
