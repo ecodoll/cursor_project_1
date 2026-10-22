@@ -1,3 +1,6 @@
+-- 이 앱은 더 이상 Supabase를 쓰지 않습니다. 데이터는 구글 시트(gas/Code.gs)에 저장합니다.
+-- 아래 스키마는 예전 구조를 남겨 둔 참고용입니다.
+
 create extension if not exists "pgcrypto";
 
 create table if not exists public.household_users (

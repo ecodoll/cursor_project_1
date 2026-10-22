@@ -1,4 +1,4 @@
-# 가계부 배포 전: index.html을 couple_household_book.html과 맞춥니다.
+# 가계부 배포 전: index.html과 dist를 couple_household_book.html과 맞춥니다.
 # Vercel은 저장소 연동 시 npm run build로 같은 작업을 합니다.
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot

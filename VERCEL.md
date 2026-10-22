@@ -1,6 +1,6 @@
 # Vercel로 배포하기
 
-메인 소스는 `couple_household_book.html`입니다. 배포 시 `npm run build`가 같은 내용을 `index.html`로 복사합니다. (Vercel 대시보드·CLI 모두 이 빌드를 사용합니다.)
+메인 소스는 `couple_household_book.html`입니다. 배포 시 `npm run build`가 같은 내용을 `index.html`과 `dist/index.html`로 복사합니다. Vercel은 `dist`를 정적 파일로 올리고, `api/sheet.js`가 구글 시트로 요청을 넘깁니다.
 
 ## 1) 준비
 
@@ -31,7 +31,7 @@ cd c:\Users\ecodo\cursor_practice_1
 npm run build
 ```
 
-- **하는 일**: `couple_household_book.html` 내용을 `index.html`로 복사합니다. Vercel은 보통 **웹 주소의 맨 앞(`/`)** 에서 `index.html`을 찾기 때문에 이 단계가 있습니다.
+- **하는 일**: `couple_household_book.html` 내용을 `index.html`과 `dist/index.html`로 복사하고, 아이콘·매니페스트를 `dist`에 넣습니다. Vercel은 **웹 주소의 맨 앞(`/`)** 에서 `index.html`을 찾습니다.
 - **성공 시**: 오류 없이 끝나면 됩니다. `package.json`의 `build` 스크립트가 실행된 것입니다.
 - **실패 시**: `node` / `npm`이 없다고 나오면 [Node.js LTS](https://nodejs.org/)를 먼저 설치한 뒤, 터미널을 **새로 연 다음** 다시 시도합니다.
 
@@ -78,14 +78,15 @@ npx vercel --prod
 2. [Vercel Dashboard](https://vercel.com/dashboard) → **Add New…** → **Project** → 해당 저장소 선택.
 3. **Framework Preset**: Other (또는 자동 인식)
 4. **Build Command**: `npm run build` (저장소의 `vercel.json`·`package.json`에 맞춰져 있음)
-5. **Output Directory**: `.` (루트 그대로, 기본값 유지)
-6. **Deploy**
+5. **Output Directory**: `dist`
+6. **Environment Variables**: `APPS_SCRIPT_URL` = 앱스 스크립트 웹 앱 주소 (`/exec`로 끝나는 주소). 만드는 방법은 `gas/README.md`에 있습니다.
+7. **Deploy**
 
-이후 `couple_household_book.html`만 수정해 푸시하면 Vercel이 빌드 후 자동 배포합니다.
+이후 `couple_household_book.html`만 수정해 푸시하면 Vercel이 빌드 후 자동 배포합니다. 스크립트 주소를 바꾼 뒤에는 환경변수를 수정하고 다시 배포합니다.
 
-## 4) Supabase
+## 4) 구글 시트
 
-배포가 끝나면 주소가 `https://xxxx.vercel.app` 형태입니다. Supabase 프로젝트에서 **Authentication → URL** 등에 이 URL을 허용 목록에 넣어야 할 수 있습니다. (프로젝트 설정에 따라 다름.)
+가계부 데이터는 Supabase가 아니라 비공개 구글 시트에 있습니다. 시트·스크립트·비밀번호 설정은 `gas/README.md`를 따릅니다. 배포 주소는 `https://xxxx.vercel.app` 형태입니다.
 
 ## 5) Windows에서 빌드만 할 때
 
@@ -95,4 +96,4 @@ Node가 없으면 PowerShell:
 .\deploy.ps1
 ```
 
-Node가 있으면 `npm run build`와 동일하게 `index.html`을 맞출 수 있습니다.
+Node가 있으면 `npm run build`와 동일하게 `index.html`과 `dist`를 맞출 수 있습니다.
